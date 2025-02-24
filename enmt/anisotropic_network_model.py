@@ -107,8 +107,78 @@ class AnisotropicNetworkModel():
         plt.matshow(self.contacts, cmap='binary')
         return plt.show()
 
+    def show_mode(self, mode=0, signed_amplitude=True, show_zero_line=True):
+
+        aux_mode = self.modes[mode]
+        amplitude_residue = np.sqrt(aux_mode[:,0]**2 + aux_mode[:,1]**2 + aux_mode[:,2]**2)
+
+        if signed_amplitude:
+
+            ref_residue = np.argmax(amplitude_residue)
+            ref_vector = aux_mode[ref_residue]
+            dot_product = np.einsum('ij,j->i', aux_mode, ref_vector)
+            signs = np.sign(dot_product)
+            amplitude_residue = amplitude_residue*signs
+
+        plt.plot(amplitude_residue)
+
+        if show_zero_line:
+            plt.axhline(0, ls='--', c='gray')
+
+        plt.show()
+
+    def view(self, protein=True, network=False, color_by_value=None, representation='cartoon', cmap='bwr'):
+
+        if protein:
+            output = msm.view(self.molecular_system)
+
+
+            if color_by_value is not None:
+
+                output.clear()
+
+                msm.thirds.nglview.set_color_by_value(output, color_by_value, element='group', representation=representation, cmap=cmap)
+
+        else:
+            output = nv.NGLWidget()
+
+        if network:
+
+            coordinates = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, coordinates=True)
+            coordinates = puw.get_value(coordinates[0], to_unit='angstroms')
+
+            for ii in range(self.n_nodes):
+                for jj in range(ii+1, self.n_nodes):
+                    if self.contacts[ii,jj]:
+
+                        kwargs = {'position1':coordinates[ii].tolist(),
+                                  'position2':coordinates[jj].tolist(),
+                                  'color': [0.6, 0.6, 0.6],
+                                  'radius': [0.2]}
+                        
+                        msg = output._get_remote_call_msg("addBuffer",
+                                            target="Widget",
+                                            args=["cylinder"],
+                                            kwargs=kwargs,
+                                            fire_embed=True)
+
+                        def callback(widget, msg=msg):
+                            widget.send(msg)
+
+                        callback._method_name = 'addBuffer'
+                        callback._ngl_msg = msg
+
+                        output._ngl_displayed_callbacks_before_loaded.append(callback)
+
+                        output._ngl_msg_archive.append(msg)
+        
+
+        return output
+
+
     def view_mode(self, mode=0, amplitude='6.0 angstroms', oscillation_steps=60, method='LinDelInt',
-                  representation='cartoon', arrows=False, color_arrows='#808080', radius_arrows='0.2 angstroms'):
+                  representation='cartoon', color_by_amplitude=False, color_by_signed_amplitude=False, cmap='bwr',
+                  arrows=False, color_arrows='#808080', radius_arrows='0.2 angstroms'):
 
         if oscillation_steps>0:
 
@@ -119,6 +189,23 @@ class AnisotropicNetworkModel():
         else:
 
             view = msm.view(self.molecular_system)
+
+        if color_by_amplitude or color_by_signed_amplitude:
+
+            aux_mode = self.modes[mode]
+            amplitude_residue = np.sqrt(aux_mode[:,0]**2 + aux_mode[:,1]**2 + aux_mode[:,2]**2)
+
+            if color_by_signed_amplitude:
+
+                ref_residue = np.argmax(amplitude_residue)
+                ref_vector = aux_mode[ref_residue]
+                dot_product = np.einsum('ij,j->i', aux_mode, ref_vector)
+                signs = np.sign(dot_product)
+                amplitude_residue = amplitude_residue*signs
+
+            msm.thirds.nglview.set_color_by_value(view, amplitude_residue, element='group',
+                                                  representation=representation, mid_value=0.0,
+                                                  cmap=cmap)
 
         if arrows:
 
