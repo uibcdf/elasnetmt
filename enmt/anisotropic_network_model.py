@@ -1,5 +1,5 @@
 import molsysmt as msm
-from openenm import pyunitwizard as puw
+from enmt import pyunitwizard as puw
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
@@ -12,10 +12,11 @@ import lindelint as ldl
 
 class AnisotropicNetworkModel():
 
-    def __init__(self, molecular_system, selection='atom_name=="CA"', structure_index=0, cutoff='9 angstroms', stiffness=None,
-                 syntax='MolSysMT'):
+    def __init__(self, molecular_system, selection='atom_name=="CA"', structure_index=0, cutoff='9 angstroms',
+                 stiffness=None, syntax='MolSysMT'):
 
-        self.molecular_system = msm.convert(molecular_system, to_form="molsysmt.MolSys", structure_indices=structure_index)
+        self.molecular_system = msm.convert(molecular_system, to_form="molsysmt.MolSys",
+                                            structure_indices=structure_index)
  
         self.atom_indices = None
         self.n_nodes = 0
@@ -106,13 +107,13 @@ class AnisotropicNetworkModel():
         plt.matshow(self.contacts, cmap='binary')
         return plt.show()
 
-    def view_mode(self, mode=0, amplitude='6.0 angstroms', oscillation_steps=60, method='LinDelInt', representation='cartoon', arrows=False,
-            color_arrows='#808080', radius_arrows='0.2 angstroms'):
+    def view_mode(self, mode=0, amplitude='6.0 angstroms', oscillation_steps=60, method='LinDelInt',
+                  representation='cartoon', arrows=False, color_arrows='#808080', radius_arrows='0.2 angstroms'):
 
         if oscillation_steps>0:
 
-            molecular_system = self.trajectory_along_mode(mode=mode, amplitude=amplitude, oscillation_steps=oscillation_steps, method=method,
-                    form='molsysmt.MolSys')
+            molecular_system = self.trajectory_along_mode(mode=mode, amplitude=amplitude,
+                                                          oscillation_steps=oscillation_steps, method=method)
             view = msm.view(molecular_system)
 
         else:
@@ -121,21 +122,25 @@ class AnisotropicNetworkModel():
 
         if arrows:
 
-            coordinates = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, coordinates=True)
+            origin_arrows = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, coordinates=True)
             arrows = puw.quantity(100.0*self.modes[mode], 'angstroms')
-            msm.thirds.nglview.add_arrows(view, coordinates, arrows, color=color_arrows, radius=radius_arrows)
+            end_arrows = origin_arrows + arrows
+
+            msm.thirds.nglview.add_arrows(view, origin_arrows, end_arrows,
+                                          color=color_arrows, radius=radius_arrows)
 
         return view
 
 
-    def trajectory_along_mode(self, selection='all', mode=0, amplitude='6.0 angstroms', oscillation_steps=60, method='LinDelInt',
-            syntax='MolSysMT', form='XYZ'):
+    def trajectory_along_mode(self, selection='all', mode=0, amplitude='6.0 angstroms', oscillation_steps=60,
+                              keep_box=False, method='LinDelInt', syntax='MolSysMT'):
 
         # method in ['LinDelInt', 'physical']
 
         if method=='LinDelInt':
 
-            coordinates_nodes = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, coordinates=True)
+            coordinates_nodes = msm.get(self.molecular_system, element='atom', selection=self.atom_indices,
+                                        coordinates=True)
             mode_array = self.modes[mode]
 
             interpolator = ldl.Interpolator(puw.get_value(coordinates_nodes[0]), mode_array)
@@ -163,7 +168,9 @@ class AnisotropicNetworkModel():
 
             molecular_system = msm.remove(molecular_system, structure_indices=0)
             msm.append_structures(molecular_system, new_coordinates)
-            molecular_system = msm.convert(molecular_system, to_form=form)
+
+            if keep_box==False:
+                msm.set(molecular_system, element='system', box=None)
 
             return molecular_system
 

@@ -1,5 +1,5 @@
 package:
-  name: openenm
+  name: enmt
   version: "{{ environ['GIT_DESCRIBE_TAG'] }}"
 source:
   path: ../../
@@ -29,5 +29,5 @@ about:
   description: 'This library...
 
     '
-  dev_url: https://github.com/uibcdf/OpenENM
-  doc_url: https://uibcdf.org/OpenENM
+  dev_url: https://github.com/uibcdf/enmt
+  doc_url: https://uibcdf.org/enmt

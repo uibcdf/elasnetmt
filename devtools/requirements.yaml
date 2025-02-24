@@ -2,7 +2,6 @@ setup:
   channels: &setup_channels
     - uibcdf
     - conda-forge
-    - defaults
   dependencies: &setup_dependencies
     - python
     - pip
@@ -27,8 +26,8 @@ test:
   dependencies: &test_dependencies
     - *production_dependencies
     - pytest
-    - pip
     - pytest-cov
+    - pytest-xdist
     - codecov
 
 docs:
@@ -42,6 +41,7 @@ docs:
     - sphinx-remove-toctrees
     - sphinx-copybutton
     - myst-nb
+    - jupyterlab
 
 development:
   channels:
@@ -50,7 +50,6 @@ development:
     - *production_dependencies
     - *test_dependencies
     - *docs_dependencies
-    - jupyterlab
     - pyyaml
     - mamba
 

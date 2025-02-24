@@ -7,8 +7,31 @@ import subprocess as sp
 from tempfile import TemporaryDirectory
 from contextlib import contextmanager
 # YAML imports
-import yaml  # PyYAML
-loader = yaml.load
+try:
+    import yaml  # PyYAML
+    loader = yaml.safe_load
+except ImportError:
+    try:
+        import ruamel_yaml as yaml  # Ruamel YAML
+    except ImportError:
+        try:
+            # Load Ruamel YAML from the base conda environment
+            from importlib import util as import_util
+            CONDA_BIN = os.path.dirname(os.environ['CONDA_EXE'])
+            ruamel_yaml_path = glob.glob(os.path.join(CONDA_BIN, '..',
+                                                      'lib', 'python*.*', 'site-packages',
+                                                      'ruamel_yaml', '__init__.py'))[0]
+            # Based on importlib example, but only needs to load_module since its the whole package, not just
+            # a module
+            spec = import_util.spec_from_file_location('ruamel_yaml', ruamel_yaml_path)
+            yaml = spec.loader.load_module()
+        except (KeyError, ImportError, IndexError):
+            raise ImportError("No YAML parser could be found in this or the conda environment. "
+                              "Could not find PyYAML or Ruamel YAML in the current environment, "
+                              "AND could not find Ruamel YAML in the base conda environment through CONDA_EXE path. " 
+                              "Environment not created!")
+    loader = yaml.YAML(typ="safe").load  # typ="safe" avoids odd typing on output
+
 
 @contextmanager
 def temp_cd():
@@ -35,8 +58,7 @@ args = parser.parse_args()
 
 # Open the base file
 with open(args.conda_file, "r") as handle:
-    yaml_script = loader(handle.read(), Loader=yaml.FullLoader)
-
+    yaml_script = loader(handle.read())
 python_replacement_string = "python {}*".format(args.python)
 
 try:
@@ -52,21 +74,37 @@ finally:
     yaml_script['dependencies'].insert(0, python_replacement_string)
 
 # Figure out conda path
+conda_path = None
 if "CONDA_EXE" in os.environ:
     conda_path = os.environ["CONDA_EXE"]
 else:
     conda_path = shutil.which("conda")
+
+# Figure out mamba path
+mamba_path = None
+if "MAMBA_EXE" in os.environ:
+    mamba_path = os.environ["MAMBA_EXE"]
+else:
+    mamba_path = shutil.which("mamba")
+
 if conda_path is None:
     raise RuntimeError("Could not find a conda binary in CONDA_EXE variable or in executable search path")
 
 print("CONDA ENV NAME  {}".format(args.name))
 print("PYTHON VERSION  {}".format(args.python))
 print("CONDA FILE NAME {}".format(args.conda_file))
-print("CONDA PATH      {}".format(conda_path))
+if mamba_path is not None:
+    print("MAMBA PATH      {}".format(mamba_path))
+else:
+    print("CONDA PATH      {}".format(conda_path))
 
 # Write to a temp directory which will always be cleaned up
 with temp_cd():
     temp_file_name = "temp_script.yaml"
     with open(temp_file_name, 'w') as f:
         f.write(yaml.dump(yaml_script))
-    sp.call("{} env create -n {} -f {}".format(conda_path, args.name, temp_file_name), shell=True)
+    if mamba_path is not None:
+        sp.call("{} env create -n {} -f {}".format(mamba_path, args.name, temp_file_name), shell=True)
+    else:
+        sp.call("{} env create -n {} -f {}".format(conda_path, args.name, temp_file_name), shell=True)
+

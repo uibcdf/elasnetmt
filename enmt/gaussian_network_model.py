@@ -1,5 +1,5 @@
 import molsysmt as msm
-from openenm import pyunitwizard as puw
+from enmt import pyunitwizard as puw
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
@@ -69,31 +69,43 @@ class GaussianNetworkModel():
 
         # B-factors and diagonal
 
-        self.b_factors_exp = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, b_factor=True)
+        self.b_factors_exp = msm.get(self.molecular_system, element='atom',
+                                     selection=self.atom_indices, b_factor=True)
 
-           ### scipy.linalg.pinvh would work also
+        if self.b_factors_exp is not None:
+            self.b_factors_exp = self.b_factors_exp[0]
+
+        ### scipy.linalg.pinvh would work also
         diag = np.diag(1.0/self.eigenvalues)
         diag[0,0] = 0.0
         self.inverse = self.eigenvectors @ diag @ self.eigenvectors.T
 
         b_factors_unfitted = self.inverse.diagonal()
 
-        aa=0.0
-        bb=0.0
+        if self.b_factors_exp is not None:
 
-        for ii in range(self.n_nodes):
-            aa+=self.b_factors_exp[ii]*b_factors_unfitted[ii]
-            bb+=b_factors_unfitted[ii]*b_factors_unfitted[ii]
+            aa=0.0
+            bb=0.0
 
-        self.scaling_factor = aa/bb
+            for ii in range(self.n_nodes):
+                aa+=self.b_factors_exp[ii]*b_factors_unfitted[ii]
+                bb+=b_factors_unfitted[ii]*b_factors_unfitted[ii]
 
-        self.b_factors = self.scaling_factor * b_factors_unfitted
+            self.scaling_factor = aa/bb
 
-        dev=0.0
-        for ii in range(self.n_nodes):
-            dev+=(self.b_factors_exp[ii]-self.b_factors[ii])**2
-        
-        self.sqrt_deviation = dev
+            self.b_factors = self.scaling_factor * b_factors_unfitted
+
+            dev=0.0
+            for ii in range(self.n_nodes):
+                dev+=(self.b_factors_exp[ii]-self.b_factors[ii])**2
+            
+            self.sqrt_deviation = dev
+
+        else:
+
+            self.scaling_factor = None
+            self.b_factors = b_factors_unfitted
+            self.scaling_factor = None
 
         # Correlation Matrix
 
@@ -143,11 +155,20 @@ class GaussianNetworkModel():
 
     def show_b_factors(self):
 
-        plt.plot(self.b_factors_exp, color="blue")
+        if self.b_factors_exp is None:
+            print('No experimental B-factors available')
+        else:
+            plt.plot(self.b_factors_exp, color="blue")
+
         plt.plot(self.b_factors, color="red")
+
         return plt.show()
 
     def show_b_factors_dispersion(self):
+
+        if self.b_factors_exp is None:
+            print('No experimental B-factors available')
+            return
 
         x = self.b_factors
         y = self.b_factors_exp
@@ -205,6 +226,15 @@ class GaussianNetworkModel():
 
         return plt.show()
 
+    def show_mode(self, mode=1, show_zero_line=True):
+
+        plt.plot(self.modes[mode])
+
+        if show_zero_line:
+            plt.axhline(0, ls='--', c='gray')
+
+        plt.show()
+
     def view(self, protein=True, network=False, color_by_value=None, representation='cartoon', cmap='bwr'):
 
         if protein:
@@ -215,7 +245,7 @@ class GaussianNetworkModel():
 
                 output.clear()
 
-                msm.thirds.nglview.color_by_value(output, color_by_value, element='group', representation=representation, cmap=cmap)
+                msm.thirds.nglview.set_color_by_value(output, color_by_value, element='group', representation=representation, cmap=cmap)
 
         else:
             output = nv.NGLWidget()
@@ -259,7 +289,8 @@ class GaussianNetworkModel():
 
         output.clear()
 
-        msm.thirds.nglview.color_by_value(output, self.modes[mode], element='group', representation=representation, cmap=cmap)
+        msm.thirds.nglview.set_color_by_value(output, self.modes[mode], element='group', representation=representation,
+                                              mid_value=0.0, cmap=cmap)
 
         return output
 

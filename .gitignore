@@ -115,3 +115,6 @@ record.txt
 # JetBrains
 .idea
 
+# In this library
+enmt/_version.py
+

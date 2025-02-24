@@ -1,5 +1,5 @@
 import molsysmt as msm
-from openenm import pyunitwizard as puw
+from enmt import pyunitwizard as puw
 import numpy as np
 from matplotlib import pyplot as plt
 

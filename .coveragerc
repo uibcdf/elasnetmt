@@ -1,0 +1,9 @@
+# .coveragerc
+
+[run]
+branch = True
+source = enmt
+
+[report]
+show_missing = True
+omit =
