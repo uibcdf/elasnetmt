@@ -1,11 +1,11 @@
-# ENMT
+# ENMMT
 
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/uibcdf/ENMT/workflows/CI/badge.svg)](https://github.com/uibcdf/ENMT/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/uibcdf/ENMT/branch/master/graph/badge.svg)](https://codecov.io/gh/uibcdf/ENMT/branch/master)
+[![GitHub Actions Build Status](https://github.com/uibcdf/enmmt/workflows/CI/badge.svg)](https://github.com/uibcdf/enmmt/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/uibcdf/enmmt/branch/master/graph/badge.svg)](https://codecov.io/gh/uibcdf/enmmt/branch/master)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Elastic Networks MultiToolkit (ENMT) is an open source library to work with Elastic Network Models.
+Elastic Network Models Multi Toolkit (ENMMT) is an open source library to work with Elastic Network Models.
 
 ## License
 
