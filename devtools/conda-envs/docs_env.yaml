@@ -1,7 +1,6 @@
 channels:
 - uibcdf
 - conda-forge
-- defaults
 dependencies:
 - python
 - pip
@@ -13,9 +12,15 @@ dependencies:
 - tqdm
 - scikit-learn
 - lindelint
+- jupyterlab
 - sphinx
-- sphinx_rtd_theme
-- sphinxcontrib-bibtex
+- pydata-sphinx-theme
 - sphinx-remove-toctrees
+- sphinxcontrib-bibtex
 - sphinx-copybutton
+- sphinx-design
+- sphinx-favicon
+- sphinx-tabs
 - myst-nb
+- seaborn
+- nbsphinx

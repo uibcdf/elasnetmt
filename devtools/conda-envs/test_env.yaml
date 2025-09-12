@@ -1,7 +1,6 @@
 channels:
 - uibcdf
 - conda-forge
-- defaults
 dependencies:
 - python
 - pip
@@ -15,4 +14,5 @@ dependencies:
 - lindelint
 - pytest
 - pytest-cov
+- pytest-xdist
 - codecov

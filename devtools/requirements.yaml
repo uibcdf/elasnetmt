@@ -35,13 +35,18 @@ docs:
     - *production_channels
   dependencies: &docs_dependencies
     - *production_dependencies
-    - sphinx
-    - sphinx_rtd_theme
-    - sphinxcontrib-bibtex
-    - sphinx-remove-toctrees
-    - sphinx-copybutton
-    - myst-nb
     - jupyterlab
+    - sphinx
+    - pydata-sphinx-theme
+    - sphinx-remove-toctrees
+    - sphinxcontrib-bibtex
+    - sphinx-copybutton
+    - sphinx-design
+    - sphinx-favicon
+    - sphinx-tabs
+    - myst-nb
+    - seaborn
+    - nbsphinx
 
 development:
   channels:
@@ -50,7 +55,6 @@ development:
     - *production_dependencies
     - *test_dependencies
     - *docs_dependencies
-    - pyyaml
     - mamba
 
 conda-build:

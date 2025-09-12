@@ -1,9 +1,9 @@
 # Installation
 
-OpenENM is distributed through the 'uibcdf' conda channel.
+ElasNetMT is distributed through the 'uibcdf' conda channel.
 If there is no reason to install the library from the source code, we highly recommend working with
 conda.
 
 ```bash
-conda install -c uibcdf openenm
+conda install -c uibcdf elasnetmt
 ```

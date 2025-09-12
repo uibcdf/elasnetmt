@@ -1,5 +1,5 @@
 """
-ENMT
+ElasNetMT
 This must be a short description of the project
 """
 

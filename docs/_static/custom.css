@@ -1,11 +1,29 @@
-.wy-nav-content {
-    max-width: 100% !important;
+/* Change the default width of primary sidebar */
+.bd-sidebar-primary { 
+    width: 16%;
 }
+
+/* Change the default width of secondary sidebar */
+.bd-sidebar-secondary {
+    width: 20%;
+}
+
+.bd-page-width {
+  max-width: 90%;  /* default is 88rem */
+}
+
+
+.bd-main .bd-content .bd-article-container {
+  max-width: 78%;  /* default is 60em */
+}
+
+
 
 /* To change the left bar of executable cells in markdown and executable cells in jupyter notebooks */
 /* See https://github.com/executablebooks/meta/discussions/667 */
 div.cell div.cell_input {
-    border-left-color: #C9C9C9;
+    border-left-color: #789abd;
+    
 }
 
 /*********************************************
@@ -71,3 +89,36 @@ div.cell.tag_scroll-input div.cell_input::-webkit-scrollbar-thumb:hover {
 		 overflow-x: visible;
 	}
 }
+
+
+
+/*********************************************
+* Color changes in theme
+* See https://github.com/pydata/pydata-sphinx-theme/blob/main/src/pydata_sphinx_theme/assets/styles/variables/_color.scss
+* https://pydata-sphinx-theme.readthedocs.io/en/v0.9.0/user_guide/customizing.html
+*********************************************/
+
+html[data-theme="light"] {
+  --pst-color-primary: #35587C;
+  --pst-color-primary-highlight: #053f49;
+  --pst-color-secondary: #08294D;
+  --pst-color-secondary-highlight: #86A3C3;
+  --pst-color-target: rgb(255, 236, 158);
+  --pst-color-inline-code: rgb(214, 84, 41);
+  --pst-color-table-row-hover-bg: #ADC5DF;
+  --sd-color-card-border-hover: hsla(210, 34%, 60%, 1);
+  --sd-color-tabs-label-active: hsla(210, 34%, 60%, 1);
+  --sd-color-tabs-label-hover: hsla(210, 34%, 60%, 1);
+  --sd-color-tabs-underline-active: hsla(210, 34%, 60%, 1);
+ }
+
+/*********************************************
+* Google font for the logo
+*********************************************/
+
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+svg text {
+    font-family: 'Varela Round', sans-serif !important;
+}
+

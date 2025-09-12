@@ -1,7 +1,6 @@
 channels:
 - uibcdf
 - conda-forge
-- defaults
 dependencies:
 - anaconda-client
 - conda-build

@@ -1,6 +1,6 @@
 from .elastic_network_model import ElasticNetworkModel
 import molsysmt as msm
-from enmt import pyunitwizard as puw
+from elasnetmt import pyunitwizard as puw
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap

@@ -20,19 +20,17 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import openenm
+import elasnetmt
 
 # -- Project information -----------------------------------------------------
 
-project = 'OpenENM'
-copyright = ("2022, UIBCDF Lab at the Mexico City Childrens Hospital Federico Gomez and authors."
-             "Computational Molecular Science Python Cookiecutter version 1.5")
-author = 'Liliana M. Moreno Vargas & Diego Prada Gracia'
+project = 'ElasNetMT'
+copyright = ''
 
 # The short X.Y version
-version = openenm.__version__.split('+')[0]
+version = elasnetmt.__version__.split('+')[0]
 # The full version, including alpha/beta/rc tags
-release = openenm.__version__
+release = elasnetmt.__version__
 
 print(f'version {version}, release {release}')
 
@@ -57,29 +55,47 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinxcontrib.bibtex',
     'sphinx.ext.extlinks',
-    'sphinx_remove_toctrees',
     'sphinx_copybutton',
-    'myst_nb'
+    'sphinx_remove_toctrees',
+    'sphinx_design',
+    'sphinx_favicon',
+    'myst_nb',
+    'sphinx_tabs.tabs', # Do not move from the last position
 ]
 
-# Myst extensions and options
+# MyST-NB extensions and options
 
 myst_enable_extensions = [
     'dollarmath',
-    'amsmath'
+    'amsmath',
+    'colon_fence'
 ]
 
 myst_heading_anchors = 3
+
+nb_execution_mode = "off"
+
+# -- Options for autodoc ----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
+
+# Automatically extract typehints when specified and place them in
+# descriptions of the relevant function/method.
+autodoc_typehints = "description"
+
+# Don't show class signature with the class' name.
+autodoc_class_signature = "mixed"
 
 # Autosummary options
 
 autosummary_generate = True
 
 # Napoleon settings
-napoleon_numpy_docstring = True 
-napoleon_google_docstring = False
-napoleon_use_param = False
-napoleon_use_ivar = True
+napoleon_include_special_with_doc = True
+
+#napoleon_numpy_docstring = True 
+#napoleon_google_docstring = False
+#napoleon_use_param = False
+#napoleon_use_ivar = True
 
 # sphinxcontrib-bibtex
 bibtex_bibfiles = ['bibliography.bib'] # list of *.bib files
@@ -130,27 +146,33 @@ for directory in os.walk('api'):
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'pydata_sphinx_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#
-# html_theme_options = {}
+
 html_theme_options = {
-    'canonical_url': '',
-    'analytics_id': '',
-    'logo_only': False,
-    'display_version': True,
-    'prev_next_buttons_location': 'bottom',
-    'style_external_links': False,
-    # Toc options
-    'collapse_navigation': False,
-    'sticky_navigation': False,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': True
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/uibcdf/elasnetmt",
+            "icon": "fa-brands fa-github",
+        },
+    ],
+    "use_edit_page_button": False,
+    "header_links_before_dropdown": 8,  # valor alto para evitar 'More'
 }
+
+html_context = {
+    "github_user": "uibcdf",
+    "github_repo": "elasnetmt",
+    "github_version": "main",
+    "doc_path": "docs",
+}
+
+html_show_sourcelink = False
+
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = []
@@ -160,17 +182,13 @@ html_theme_path = []
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-#### I should check
-#### https://github.com/lotharschulz/sphinx-pages/blob/master/conf.py for more
-#### options
+html_logo = "_static/logo.svg"
 
-# Disable showing Sphinx footer message:
-# "Built with Sphinx using a theme provided by Read the Docs. "
-html_show_sphinx = False
-
-# Disable the Copyright footer for Read the docs at the bottom of the page
-# by setting property html_show_copyright = False
-html_show_copyright = True
+favicons = ["favicon-16x16.png",
+            "favicon-124x124.png",
+            "favicon-128x128.png",
+            "favicon-192x192.png",
+            "icon.svg"]
 
 # Custom css
 
@@ -178,44 +196,23 @@ html_css_files = [
     'custom.css',
 ]
 
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# The default sidebars (for documents that don't match any pattern) are
-# defined by theme itself.  Builtin themes are using these templates by
-# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
-# 'searchbox.html']``.
-#
-# html_sidebars = {}
-
-html_show_sourcelink = False
-
+# Custom css for tabs
+def setup(app):
+    app.add_css_file('sphinx_tabs.css')
+    app.add_css_file('custom.css')
+    app.add_js_file('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js')
+    app.add_js_file('https://cdn.jsdelivr.net/npm/nglview-js-widgets@3.1.0/dist/index.js')
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'openenmdoc'
+htmlhelp_basename = 'elasnetmtdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
 
 latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
-
-    # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
-
-    # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
-
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

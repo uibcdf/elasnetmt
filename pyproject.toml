@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 # Self-descriptive entries which should always be present
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 [project]
-name = "enmt"
+name = "elasnetmt"
 description = "A short description of the project"
 dynamic = ["version"]
 readme = "README.md"
@@ -32,8 +32,8 @@ dependencies = [
 
 # Update the urls once the hosting is set up.
 [project.urls]
-"Source" = "https://github.com/uibcdf/enmt/"
-"Documentation" = "https://uibcdf.org/enmt"
+"Source" = "https://github.com/uibcdf/elasnetmt/"
+"Documentation" = "https://uibcdf.org/elasnetmt"
 
 [project.optional-dependencies]
 test = [
@@ -88,7 +88,7 @@ match = ["*"]
 default-tag = "0.0.0"
 
 [tool.versioningit.write]
-file = "enmt/_version.py"
+file = "elasnetmt/_version.py"
 
 #[tool.flit.external-data]
 #directory = "data"
