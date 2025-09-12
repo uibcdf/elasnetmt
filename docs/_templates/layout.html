@@ -1,8 +1,12 @@
-{% extends '!layout.html' %}
-{% block document %}
-{{super()}}
-    <a href="https://github.com/uibcdf/elasnetmt">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
-    </a>
+{# _templates/layout.html #}
+{% extends "!layout.html" %}
+{% set home = (root_doc if root_doc is defined else master_doc) %}
+
+{% block htmltitle %}
+  {% if pagename == home %}
+    <title>{{ project }} {{ release }}</title>
+  {% else %}
+    <title>{{ title|striptags }} – {{ project }} {{ release }}</title>
+  {% endif %}
 {% endblock %}
 

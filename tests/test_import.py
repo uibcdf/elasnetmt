@@ -1,13 +1,13 @@
 """
-Unit and regression test for the openenm package.
+Unit and regression test for the elasnetmt package.
 """
 
 # Import package, test suite, and other packages as needed
-import openenm
+import elasnetmt
 import pytest
 import sys
 
 def test_openenm_imported():
     """Sample test, will always pass so long as import statement worked"""
-    assert "openenm" in sys.modules
+    assert "elasnetmt" in sys.modules
 
