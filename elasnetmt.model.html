@@ -1,0 +1,668 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="_static/favicon-16x16.png" sizes="16x16" rel="icon" type="image/png">
+    <link href="_static/favicon-124x124.png" sizes="124x124" rel="icon" type="image/png">
+    <link href="_static/favicon-128x128.png" sizes="128x128" rel="icon" type="image/png">
+    <link href="_static/favicon-192x192.png" sizes="192x192" rel="icon" type="image/png">
+    <link href="_static/icon.svg" rel="icon" type="image/svg+xml">
+    <title>elasnetmt.model package &#8212; ElasNetMT 0.1.0+0.g3cc3a82.dirty documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx_tabs.css?v=f45e19d3" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3c29d883" />
+    <link rel="stylesheet" type="text/css" href="_static/tabs.css?v=a5c4661c" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3c29d883" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/documentation_options.js?v=9240ad1e"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nglview-js-widgets@3.1.0/dist/index.js"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/logo.svg" class="logo__image only-light" alt="ElasNetMT 0.1.0+0.g3cc3a82.dirty documentation - Home"/>
+    <img src="_static/logo.svg" class="logo__image only-dark pst-js-only" alt="ElasNetMT 0.1.0+0.g3cc3a82.dirty documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contents/about/index.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contents/showcase/index.html">
+    Showcase
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contents/user/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contents/developer/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api/index.html">
+    API documentation
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/uibcdf/elasnetmt" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contents/about/index.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contents/showcase/index.html">
+    Showcase
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contents/user/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contents/developer/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api/index.html">
+    API documentation
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/uibcdf/elasnetmt" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">elasnetmt.model package</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">elasnetmt.model package</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="elasnetmt-model-package">
+<h1>elasnetmt.model package<a class="headerlink" href="#elasnetmt-model-package" title="Link to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-elasnetmt.model.anisotropic_network_model">
+<span id="elasnetmt-model-anisotropic-network-model-module"></span><h2>elasnetmt.model.anisotropic_network_model module<a class="headerlink" href="#module-elasnetmt.model.anisotropic_network_model" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">elasnetmt.model.anisotropic_network_model.</span></span><span class="sig-name descname"><span class="pre">AnisotropicNetworkModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecular_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom_name==&quot;CA&quot;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'9</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stiffness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syntax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MolSysMT'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/anisotropic_network_model.html#AnisotropicNetworkModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.make_model">
+<span class="sig-name descname"><span class="pre">make_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom_name==&quot;CA&quot;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'9</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syntax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MolSysMT'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/anisotropic_network_model.html#AnisotropicNetworkModel.make_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.make_model" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.show_contact_map">
+<span class="sig-name descname"><span class="pre">show_contact_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/anisotropic_network_model.html#AnisotropicNetworkModel.show_contact_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.show_contact_map" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.show_mode">
+<span class="sig-name descname"><span class="pre">show_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed_amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_zero_line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/anisotropic_network_model.html#AnisotropicNetworkModel.show_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.show_mode" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.trajectory_along_mode">
+<span class="sig-name descname"><span class="pre">trajectory_along_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'6.0</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oscillation_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LinDelInt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syntax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MolSysMT'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/anisotropic_network_model.html#AnisotropicNetworkModel.trajectory_along_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.trajectory_along_mode" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.view">
+<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_by_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">representation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cartoon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bwr'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/anisotropic_network_model.html#AnisotropicNetworkModel.view"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.view" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.view_mode">
+<span class="sig-name descname"><span class="pre">view_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'6.0</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oscillation_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LinDelInt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">representation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cartoon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_by_amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_by_signed_amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bwr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_arrows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#808080'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_arrows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0.2</span> <span class="pre">angstroms'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/anisotropic_network_model.html#AnisotropicNetworkModel.view_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.view_mode" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-elasnetmt.model.elastic_network_model">
+<span id="elasnetmt-model-elastic-network-model-module"></span><h2>elasnetmt.model.elastic_network_model module<a class="headerlink" href="#module-elasnetmt.model.elastic_network_model" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="elasnetmt.model.elastic_network_model.ElasticNetworkModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">elasnetmt.model.elastic_network_model.</span></span><span class="sig-name descname"><span class="pre">ElasticNetworkModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecular_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom_name==&quot;CA&quot;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'12</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syntax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MolSysMT'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/elastic_network_model.html#ElasticNetworkModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.elastic_network_model.ElasticNetworkModel" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.elastic_network_model.ElasticNetworkModel.calculate_contacts">
+<span class="sig-name descname"><span class="pre">calculate_contacts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/elastic_network_model.html#ElasticNetworkModel.calculate_contacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.elastic_network_model.ElasticNetworkModel.calculate_contacts" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.elastic_network_model.ElasticNetworkModel.show_contact_map">
+<span class="sig-name descname"><span class="pre">show_contact_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/elastic_network_model.html#ElasticNetworkModel.show_contact_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.elastic_network_model.ElasticNetworkModel.show_contact_map" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-elasnetmt.model.gaussian_network_model">
+<span id="elasnetmt-model-gaussian-network-model-module"></span><h2>elasnetmt.model.gaussian_network_model module<a class="headerlink" href="#module-elasnetmt.model.gaussian_network_model" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">elasnetmt.model.gaussian_network_model.</span></span><span class="sig-name descname"><span class="pre">GaussianNetworkModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecular_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom_name==&quot;CA&quot;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'9</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syntax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MolSysMT'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.make_model">
+<span class="sig-name descname"><span class="pre">make_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom_name==&quot;CA&quot;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'12</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syntax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MolSysMT'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.make_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.make_model" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_b_factors">
+<span class="sig-name descname"><span class="pre">show_b_factors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.show_b_factors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_b_factors" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_b_factors_dispersion">
+<span class="sig-name descname"><span class="pre">show_b_factors_dispersion</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.show_b_factors_dispersion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_b_factors_dispersion" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_best_cutoff">
+<span class="sig-name descname"><span class="pre">show_best_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'6.0</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'13.0</span> <span class="pre">angstroms'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0.1</span> <span class="pre">angstroms'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.show_best_cutoff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_best_cutoff" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_contact_map">
+<span class="sig-name descname"><span class="pre">show_contact_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.show_contact_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_contact_map" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_correlation_matrix">
+<span class="sig-name descname"><span class="pre">show_correlation_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'norm'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.show_correlation_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_correlation_matrix" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_inverse">
+<span class="sig-name descname"><span class="pre">show_inverse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.show_inverse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_inverse" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_mode">
+<span class="sig-name descname"><span class="pre">show_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_zero_line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.show_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_mode" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.view">
+<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_by_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">representation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cartoon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bwr'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.view"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.view" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.view_mode">
+<span class="sig-name descname"><span class="pre">view_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">representation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cartoon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bwr'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.view_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.view_mode" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="elasnetmt.model.gaussian_network_model.GaussianNetworkModel.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/elasnetmt/model/gaussian_network_model.html#GaussianNetworkModel.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.write" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="elasnetmt-model-old-anm-module">
+<h2>elasnetmt.model.old_anm module<a class="headerlink" href="#elasnetmt-model-old-anm-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-elasnetmt.model">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-elasnetmt.model" title="Link to this heading">#</a></h2>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-elasnetmt.model.anisotropic_network_model">elasnetmt.model.anisotropic_network_model module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel"><code class="docutils literal notranslate"><span class="pre">AnisotropicNetworkModel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.make_model"><code class="docutils literal notranslate"><span class="pre">AnisotropicNetworkModel.make_model()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.show_contact_map"><code class="docutils literal notranslate"><span class="pre">AnisotropicNetworkModel.show_contact_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.show_mode"><code class="docutils literal notranslate"><span class="pre">AnisotropicNetworkModel.show_mode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.trajectory_along_mode"><code class="docutils literal notranslate"><span class="pre">AnisotropicNetworkModel.trajectory_along_mode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.view"><code class="docutils literal notranslate"><span class="pre">AnisotropicNetworkModel.view()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.anisotropic_network_model.AnisotropicNetworkModel.view_mode"><code class="docutils literal notranslate"><span class="pre">AnisotropicNetworkModel.view_mode()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-elasnetmt.model.elastic_network_model">elasnetmt.model.elastic_network_model module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.elastic_network_model.ElasticNetworkModel"><code class="docutils literal notranslate"><span class="pre">ElasticNetworkModel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.elastic_network_model.ElasticNetworkModel.calculate_contacts"><code class="docutils literal notranslate"><span class="pre">ElasticNetworkModel.calculate_contacts()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.elastic_network_model.ElasticNetworkModel.show_contact_map"><code class="docutils literal notranslate"><span class="pre">ElasticNetworkModel.show_contact_map()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-elasnetmt.model.gaussian_network_model">elasnetmt.model.gaussian_network_model module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.make_model"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.make_model()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_b_factors"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.show_b_factors()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_b_factors_dispersion"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.show_b_factors_dispersion()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_best_cutoff"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.show_best_cutoff()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_contact_map"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.show_contact_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_correlation_matrix"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.show_correlation_matrix()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_inverse"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.show_inverse()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.show_mode"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.show_mode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.view"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.view()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.view_mode"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.view_mode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt.model.gaussian_network_model.GaussianNetworkModel.write"><code class="docutils literal notranslate"><span class="pre">GaussianNetworkModel.write()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#elasnetmt-model-old-anm-module">elasnetmt.model.old_anm module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-elasnetmt.model">Module contents</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><div>
+	&copy; 2025, <a href=contents/about/who.html>Liliana M. Moreno Vargas, Diego Prada Gracia
+		and contributors</a> | <a href="https://www.uibcdf.org/">UIBCDF Lab</a> 
+	at the <a href="http://himfg.com.mx">Children's Hospital of Mexico Federico Gómez</a><br />
+	<a href="https://github.com/uibcdf/elasnetmt">ElasNetMT is an open source project</a> shared
+	under <a href="https://github.com/uibcdf/MolSysMT/blob/main/LICENSE">an MIT license</a>
+	with a structure based on the
+	<a href="https://github.com/MolSSI/cookiecutter-cms">Computational Molecular Science
+		Python Cookiecutter</a> version 1.5
+</div></div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.3.0
+     | 
+    Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1
+    <br/>
+  </p>
+
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><a href= "mailto:uibcdf@gmail.com">Contact us</a><br /></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+elasnetmt package
+=================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   elasnetmt.model
+
+Submodules
+----------
+
+elasnetmt.config module
+-----------------------
+
+.. automodule:: elasnetmt.config
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: elasnetmt
+   :members:
+   :show-inheritance:
+   :undoc-members:
