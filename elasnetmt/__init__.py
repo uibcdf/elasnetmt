@@ -10,5 +10,6 @@ from . import config
 
 from ._pyunitwizard import pyunitwizard
 
-from .gaussian_network_model import GaussianNetworkModel
-from .anisotropic_network_model import AnisotropicNetworkModel
+from .model import *
+from . import model
+

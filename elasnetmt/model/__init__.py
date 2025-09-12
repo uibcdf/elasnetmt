@@ -1,0 +1,2 @@
+from .gaussian_network_model import GaussianNetworkModel
+from .anisotropic_network_model import AnisotropicNetworkModel
