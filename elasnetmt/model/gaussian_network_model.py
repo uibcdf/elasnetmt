@@ -1,5 +1,6 @@
 import molsysmt as msm
 from elasnetmt import pyunitwizard as puw
+from elasnetmt._private.warnings import warn
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
@@ -10,8 +11,12 @@ import nglview as nv
 
 class GaussianNetworkModel():
 
-    def __init__(self, molecular_system, selection='atom_name=="CA"', structure_index=0, cutoff='9 angstroms',
+    def __init__(self, molecular_system, selection='atom_name=="CA"', structure_index=0, cutoff='7 angstroms',
                  syntax='MolSysMT'):
+
+        self._input_molecular_system = molecular_system
+        self._input_selection = selection
+        self._input_structure_index = structure_index
 
         self.molecular_system = msm.convert(molecular_system, to_form="molsysmt.MolSys", structure_indices=structure_index)
 
@@ -33,7 +38,7 @@ class GaussianNetworkModel():
 
         self.make_model(selection=selection, cutoff=cutoff, syntax=syntax)
 
-    def make_model(self, selection='atom_name=="CA"', cutoff='12 angstroms', syntax='MolSysMT'):
+    def make_model(self, selection='atom_name=="CA"', cutoff='7 angstroms', syntax='MolSysMT'):
 
         if selection is not None:
             self.atom_indices = msm.select(self.molecular_system, selection=selection, syntax=syntax)
@@ -153,16 +158,51 @@ class GaussianNetworkModel():
         self.best_cutoff.append(r_2)
         return plt.show()
 
-    def show_b_factors(self):
+    def show_b_factors(self, show_experimental=True, show_modeled=True, show_legend=True,
+                       xlabel='Residue Id/Chain Id', ylabel='B-factor (A^2)',
+                       xticks_format='{group_id}/{chain_id}', xtick_rotation=45,
+                       title=None, return_figure=False):
 
-        if self.b_factors_exp is None:
-            print('No experimental B-factors available')
+        if show_experimental and self.b_factors_exp is None:
+            warn('No experimental B-factors available', category=UserElasNetMTWarning)
+            show_experimental = False
+
+        if show_modeled:
+            plt.plot(self.b_factors, color="blue", ls='-', lw=2, label='Modeled B-factors')
+        if show_experimental:
+            plt.plot(self.b_factors_exp, color="red", ls='-', lw=1, label='Experimental B-factors')
+
+        if show_legend:
+            plt.legend()
+
+        if xlabel is not None:
+            plt.xlabel(xlabel)
+            if xticks_format is not None:
+                xticks_values = msm.get_label(self.molecular_system, element='atom', selection=self.atom_indices,
+                                              string=xticks_format)
+                plt.xticks(ticks=np.arange(self.n_nodes), labels=xticks_values, rotation=xtick_rotation)
+
+        if ylabel is not None:
+            plt.ylabel(ylabel)
+
+        if title is None:
+
+            title = ''
+
+            input_format = msm.get_form(self._input_molecular_system)
+            if input_format is 'string:pdb_id':
+                title += f'{input_format} '
+
+            title += f'(Selection: {self._input_selection} | Cutoff: {self.cutoff} | Structure index: {self._input_structure_index}) '
+            #title += f'\n Scaling factor: {self.scaling_factor:.3f} | sqrt deviation: {self.sqrt_deviation:.3f}'
+            title = 'B-factors'
+
+            plt.title(title)
+
+        if return_figure:
+            return plt.gcf()
         else:
-            plt.plot(self.b_factors_exp, color="blue")
-
-        plt.plot(self.b_factors, color="red")
-
-        return plt.show()
+            return plt.show()
 
     def show_b_factors_dispersion(self):
 
