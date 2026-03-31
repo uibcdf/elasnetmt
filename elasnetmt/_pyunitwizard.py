@@ -1,21 +1,18 @@
-# Configure PyUnitWizard
+# Configure PyUnitWizard for ElasNetMT
 
-import pyunitwizard
+import pyunitwizard as puw
 
-standards = [
-    'nm',      # length: nanometer
-    'ps',      # time: picosecond
-    'K',       # temperature: kelvin
-    'mole',    # amount: mole
-    'amu',     # mass: atomic mass unit
-    'e',       # charge: elementary charge
-    'kJ/mol',  # energy: kilojoules/mole
-    'N',       # force: newton
-    'degrees'  # angles: degree
-]
+# Following MolSysSuite standard units
+puw.configure.set_default_form('pint')
+puw.configure.set_default_parser('pint')
+puw.configure.set_standard_units(['nm', 'ps', 'K', 'mole', 'dalton', 'e',
+                                 'kcal/mol', 'kcal/(mol*nm)', 'kcal/(mol*nm**2)', 'radians'])
 
-pyunitwizard.configure.set_default_form('pint')
-pyunitwizard.configure.set_default_parser('pint')
-pyunitwizard.configure.set_standard_units(standards)
+# Standard fast-tracks for ElasNetMT
+puw.register_fast_track("angstroms", puw.unit("angstrom"))
+puw.register_fast_track("nanometers", puw.unit("nm"))
+puw.register_fast_track("picoseconds", puw.unit("ps"))
 
-
+# Force constant fast-track (dimensions: [mass]/[time]**2)
+# Typically: kcal/(mol*angstrom**2)
+puw.register_fast_track("force_constant", puw.unit("kcal/(mol*angstrom**2)"))

@@ -1,356 +1,148 @@
+from elasnetmt.model.elastic_network_model import ElasticNetworkModel
+from elasnetmt._private.smonitor import ElasNetMTWarning, warn
+from argdigest import arg_digest
+from depdigest import dep_digest
+import numpy as np
+import numpy.linalg as la
+import smonitor
+import time
 import molsysmt as msm
 from elasnetmt import pyunitwizard as puw
-from elasnetmt._private.warnings import warn
-import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from tqdm import tqdm
-from copy import deepcopy
-from sklearn.linear_model import LinearRegression
-import nglview as nv
 
-class GaussianNetworkModel():
+# Numba Kernel for Kirchhoff Construction
+try:
+    from numba import njit, prange
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
 
-    def __init__(self, molecular_system, selection='atom_name=="CA"', structure_index=0, cutoff='7 angstroms',
-                 syntax='MolSysMT'):
+if HAS_NUMBA:
+    @njit(parallel=True)
+    def _build_kirchhoff_numba(contacts, n_nodes):
+        kirchhoff = -contacts.astype(np.float64)
+        for i in prange(n_nodes):
+            row_sum = 0.0
+            for j in range(n_nodes):
+                if i != j and contacts[i, j]:
+                    row_sum += 1.0
+            kirchhoff[i, i] = row_sum
+        return kirchhoff
 
-        self._input_molecular_system = molecular_system
-        self._input_selection = selection
-        self._input_structure_index = structure_index
+class GaussianNetworkModel(ElasticNetworkModel):
+    """
+    Gaussian Network Model (GNM) implementation.
+    """
 
-        self.molecular_system = msm.convert(molecular_system, to_form="molsysmt.MolSys", structure_indices=structure_index)
+    @arg_digest()
+    def __init__(self, molecular_system, selection='atom_name=="CA"', structure_index=0, 
+                 cutoff='7 angstroms', engine='auto', syntax='MolSysMT'):
+        
+        super().__init__(molecular_system, selection=selection, structure_index=structure_index,
+                         cutoff=cutoff, syntax=syntax)
 
-        self.atom_indices = None
-        self.n_nodes = 0
-        self.cutoff = None
-        self.contacts = None
         self.kirchhoff_matrix = None
-        self.eigenvalues = None
-        self.eigenvectors = None
-        self.frequencies = None
-        self.modes = None
-        self.b_factors = None
+        self.engine = engine
+        self.scaling_factor = 1.0
+        self.b_factors_theo = None
         self.b_factors_exp = None
-        self.scaling_factor = None
-        self.sqrt_deviation = None
-        self.correlation_matrix = None
-        self.inverse = None
 
-        self.make_model(selection=selection, cutoff=cutoff, syntax=syntax)
-
-    def make_model(self, selection='atom_name=="CA"', cutoff='7 angstroms', syntax='MolSysMT'):
-
-        if selection is not None:
-            self.atom_indices = msm.select(self.molecular_system, selection=selection, syntax=syntax)
-
-        if cutoff is not None:
-            self.cutoff = puw.standardize(cutoff)
-
-        # contacts
-
-        contacts = msm.structure.get_contacts(self.molecular_system,
-                                              selection=self.atom_indices,
-                                              structure_indices=0,
-                                              threshold=self.cutoff)
-
-        self.contacts = contacts[0]
-
-        self.n_nodes = self.contacts.shape[0]
-
-        np.fill_diagonal(self.contacts, False)
-
-        # Kirchhoff matrix: eigenvals, eigenvects
-
-        self.kirchhoff_matrix = -self.contacts.astype(int)
-        np.fill_diagonal(self.kirchhoff_matrix, self.contacts.sum(axis=1))
-
-        self.eigenvalues, self.eigenvectors = np.linalg.eigh(self.kirchhoff_matrix)
-
-        # Frequencies and modes
-
-        self.frequencies = np.sqrt(np.absolute(self.eigenvalues))
-
-        self.modes = np.transpose(self.eigenvectors)
-
-        # B-factors and diagonal
-
-        self.b_factors_exp = msm.get(self.molecular_system, element='atom',
-                                     selection=self.atom_indices, b_factor=True)
-
-        if self.b_factors_exp is not None:
-            self.b_factors_exp = self.b_factors_exp[0]
-
-        ### scipy.linalg.pinvh would work also
-        diag = np.diag(1.0/self.eigenvalues)
-        diag[0,0] = 0.0
-        self.inverse = self.eigenvectors @ diag @ self.eigenvectors.T
-
-        b_factors_unfitted = self.inverse.diagonal()
-
-        if self.b_factors_exp is not None:
-
-            aa=0.0
-            bb=0.0
-
-            for ii in range(self.n_nodes):
-                aa+=self.b_factors_exp[ii]*b_factors_unfitted[ii]
-                bb+=b_factors_unfitted[ii]*b_factors_unfitted[ii]
-
-            self.scaling_factor = aa/bb
-
-            self.b_factors = self.scaling_factor * b_factors_unfitted
-
-            dev=0.0
-            for ii in range(self.n_nodes):
-                dev+=(self.b_factors_exp[ii]-self.b_factors[ii])**2
-            
-            self.sqrt_deviation = dev
-
-        else:
-
-            self.scaling_factor = None
-            self.b_factors = b_factors_unfitted
-            self.scaling_factor = None
-
-        # Correlation Matrix
-
-        self.correlation_matrix = self.inverse / np.sqrt(np.einsum('ii,jj->ij', self.inverse, self.inverse))
-
-    def show_contact_map(self):
-
-        plt.matshow(self.contacts, cmap='binary')
-        return plt.show()
-
-    def show_best_cutoff(self, minimum='6.0 angstroms', maximum='13.0 angstroms', step='0.1 angstroms'):
-
-        minimum_value = puw.get_value(minimum, standardized=True)
-        maximum_value = puw.get_value(maximum, standardized=True)
-        step_value = puw.get_value(step, standardized=True)
-        length_unit = puw.get_standard_units(dimensionality={'[L]':1})
-
-        backup_cutoff = deepcopy(self.cutoff)
-
-        ctoff=[]
-        r_2=[]
-        l=1.0*self.n_nodes
-
-        for ii in tqdm(np.arange(minimum_value, maximum_value, step_value)):
-            cutoff = puw.quantity(ii, length_unit)
-            ctoff.append(cutoff)
-            self.make_model(cutoff=cutoff)
-            r_2.append((self.sqrt_deviation)/l)
-
-        self.make_model(cutoff=backup_cutoff)
-
-        unit = puw.get_unit(ctoff[0])
-        ctoff = np.array([puw.get_value(ii) for ii in ctoff])
-        ctoff = puw.quantity(ctoff, unit)
-
-        unit = puw.get_unit(r_2[0])
-        r_2 = np.array([puw.get_value(ii) for ii in r_2])
-        r_2 = puw.quantity(r_2, unit)
-
-        plt.plot(ctoff,r_2,'yo')
-        plt.ylabel('<R^2>|atom')
-        plt.xlabel('Cut Off (A)')
-        self.best_cutoff=[]
-        self.best_cutoff.append(ctoff)
-        self.best_cutoff.append(r_2)
-        return plt.show()
-
-    def show_b_factors(self, show_experimental=True, show_modeled=True, show_legend=True,
-                       xlabel='Residue Id/Chain Id', ylabel='B-factor (A^2)',
-                       xticks_format='{group_id}/{chain_id}', xtick_rotation=45,
-                       title=None, return_figure=False):
-
-        if show_experimental and self.b_factors_exp is None:
-            warn('No experimental B-factors available', category=UserElasNetMTWarning)
-            show_experimental = False
-
-        if show_modeled:
-            plt.plot(self.b_factors, color="blue", ls='-', lw=2, label='Modeled B-factors')
-        if show_experimental:
-            plt.plot(self.b_factors_exp, color="red", ls='-', lw=1, label='Experimental B-factors')
-
-        if show_legend:
-            plt.legend()
-
-        if xlabel is not None:
-            plt.xlabel(xlabel)
-            if xticks_format is not None:
-                xticks_values = msm.get_label(self.molecular_system, element='atom', selection=self.atom_indices,
-                                              string=xticks_format)
-                plt.xticks(ticks=np.arange(self.n_nodes), labels=xticks_values, rotation=xtick_rotation)
-
-        if ylabel is not None:
-            plt.ylabel(ylabel)
-
-        if title is None:
-
-            title = ''
-
-            input_format = msm.get_form(self._input_molecular_system)
-            if input_format is 'string:pdb_id':
-                title += f'{input_format} '
-
-            title += f'(Selection: {self._input_selection} | Cutoff: {self.cutoff} | Structure index: {self._input_structure_index}) '
-            #title += f'\n Scaling factor: {self.scaling_factor:.3f} | sqrt deviation: {self.sqrt_deviation:.3f}'
-            title = 'B-factors'
-
-            plt.title(title)
-
-        if return_figure:
-            return plt.gcf()
-        else:
-            return plt.show()
-
-    def show_b_factors_dispersion(self):
-
-        if self.b_factors_exp is None:
-            print('No experimental B-factors available')
+    def _solve(self):
+        """Builds the Kirchhoff matrix and performs spectral analysis."""
+        if self._eigenvalues is not None:
             return
 
-        x = self.b_factors
-        y = self.b_factors_exp
+        t_start = time.time()
+        engine_to_use = self.engine
+        if engine_to_use == 'auto':
+            engine_to_use = 'parallel' if HAS_NUMBA else 'vectorized'
 
-        plt.plot(x, y, 'yo')
-        reg = LinearRegression().fit(x.reshape((-1,1)),y)
-        b = reg.intercept_
-        m = reg.coef_[0]
-        plt.axline(xy1=(0, b), slope=m, label=f'$y = {m:.1f}x {b:+.1f}$', ls='--', color='r')
-
-        plt.axis('square')
-        plt.xlim(left=0)
-        plt.ylim(bottom=0)
-        plt.legend()
-
-        return plt.show()
-
-    def show_inverse(self):
-
-        plt.gray()
-        plt.matshow(self.inverse,cmap='binary')
-
-        return plt.show()
-
-    def show_correlation_matrix(self, mode='norm'):
-
-        vmin=self.correlation_matrix.min()
-        vmax=self.correlation_matrix.max()
-
-        if mode=='norm2':
-
-            vmax=max([abs(vmin),vmax])
-            vmin=-vmax
-
-        elif mode=='norm':
-
-            vmax=1.0
-            vmin=-1.0
-
-        elif mode=='raw':
-
-            pass
-
-        cdict = {
-            'red'  :  ((0.0,0.0,0.0), (0.5,1.0,1.0), (1.0,1.0,1.0)),
-            'green':  ((0.0,0.0,0.0), (0.5,1.0,1.0), (1.0,0.0,0.0)),
-            'blue' :  ((0.0,1.0,1.0), (0.5,1.0,1.0), (1.0,0.0,0.0))
-            }
-
-        my_cmap = LinearSegmentedColormap('my_colormap', cdict, 1024)
-
-        plt.matshow(self.correlation_matrix,cmap=my_cmap,vmin=-vmax,vmax=vmax)
-
-        plt.colorbar()
-
-        return plt.show()
-
-    def show_mode(self, mode=1, show_zero_line=True):
-
-        plt.plot(self.modes[mode])
-
-        if show_zero_line:
-            plt.axhline(0, ls='--', c='gray')
-
-        plt.show()
-
-    def view(self, protein=True, network=False, color_by_value=None, representation='cartoon', cmap='bwr'):
-
-        if protein:
-            output = msm.view(self.molecular_system)
-
-
-            if color_by_value is not None:
-
-                output.clear()
-
-                msm.thirds.nglview.set_color_by_value(output, color_by_value, element='group', representation=representation, cmap=cmap)
-
+        if engine_to_use == 'parallel' and HAS_NUMBA:
+            self.kirchhoff_matrix = _build_kirchhoff_numba(self.contacts, self.n_nodes)
         else:
-            output = nv.NGLWidget()
+            self.kirchhoff_matrix = -self.contacts.astype(float)
+            np.fill_diagonal(self.kirchhoff_matrix, self.contacts.sum(axis=1))
 
-        if network:
-
-            coordinates = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, coordinates=True)
-            coordinates = puw.get_value(coordinates[0], to_unit='angstroms')
-
-            for ii in range(self.n_nodes):
-                for jj in range(ii+1, self.n_nodes):
-                    if self.contacts[ii,jj]:
-
-                        kwargs = {'position1':coordinates[ii].tolist(),
-                                  'position2':coordinates[jj].tolist(),
-                                  'color': [0.6, 0.6, 0.6],
-                                  'radius': [0.2]}
-                        
-                        msg = output._get_remote_call_msg("addBuffer",
-                                            target="Widget",
-                                            args=["cylinder"],
-                                            kwargs=kwargs,
-                                            fire_embed=True)
-
-                        def callback(widget, msg=msg):
-                            widget.send(msg)
-
-                        callback._method_name = 'addBuffer'
-                        callback._ngl_msg = msg
-
-                        output._ngl_displayed_callbacks_before_loaded.append(callback)
-
-                        output._ngl_msg_archive.append(msg)
+        if engine_to_use == 'gpu':
+            try:
+                import cupy as cp
+                k_gpu = cp.asarray(self.kirchhoff_matrix)
+                e_gpu, v_gpu = cp.linalg.eigh(k_gpu)
+                self._eigenvalues = cp.asnumpy(e_gpu)
+                self._eigenvectors = cp.asnumpy(v_gpu)
+            except ImportError:
+                warn("CuPy not found. Falling back to CPU.")
+                self._eigenvalues, self._eigenvectors = la.eigh(self.kirchhoff_matrix)
+        else:
+            self._eigenvalues, self._eigenvectors = la.eigh(self.kirchhoff_matrix)
         
+        if self.n_nodes > 1 and np.isclose(self._eigenvalues[1], 0.0, atol=1e-8):
+            smonitor.emit_from_catalog("ENM-E020", source="elasnetmt.model.GaussianNetworkModel")
 
-        return output
+        self._frequencies = np.sqrt(np.absolute(self._eigenvalues))
+        self._modes = np.transpose(self._eigenvectors)
 
-    def view_mode(self, mode=1, representation='cartoon', cmap='bwr'):
+        t_end = time.time()
+        # Corrected smonitor.emit call
+        smonitor.emit("INFO", "elasnetmt.model.make_model", 
+                      engine=engine_to_use, nodes=self.n_nodes, time=t_end - t_start)
 
-        output = msm.view(self.molecular_system)
+    def get_eigenvalues(self):
+        self._solve()
+        return self._eigenvalues
 
-        output.clear()
+    def get_eigenvectors(self):
+        self._solve()
+        return self._eigenvectors
 
-        msm.thirds.nglview.set_color_by_value(output, self.modes[mode], element='group', representation=representation,
-                                              mid_value=0.0, cmap=cmap)
+    @arg_digest()
+    def get_b_factors(self, n_modes='all'):
+        self._solve()
+        if n_modes == 'all':
+            n_modes = self.n_nodes
+        else:
+            n_modes = min(n_modes + 1, self.n_nodes)
+        inv_ev = 1.0 / self._eigenvalues[1:n_modes]
+        self.b_factors_theo = np.einsum('ik,k->i', self._eigenvectors[:, 1:n_modes]**2, inv_ev)
+        return self.b_factors_theo * self.scaling_factor
 
-        return output
+    def fit_to_experimental_b_factors(self):
+        exp_b = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, b_factor=True)
+        self.b_factors_exp = puw.get_value(exp_b)
+        theo_b = self.get_b_factors()
+        self.scaling_factor = np.dot(self.b_factors_exp, theo_b) / np.dot(theo_b, theo_b)
+        correlation = np.corrcoef(self.b_factors_exp, theo_b)[0, 1]
+        if correlation < 0.5:
+            smonitor.emit_from_catalog("ENM-W010", correlation=float(correlation), source="elasnetmt.model.GaussianNetworkModel")
+        return self.scaling_factor, correlation
 
+    @dep_digest('matplotlib')
+    @arg_digest()
+    def show_b_factors(self, show_experimental=True, title='B-factors Profile'):
+        import matplotlib.pyplot as plt
+        self._solve()
+        theo_b = self.get_b_factors()
+        plt.figure(figsize=(10, 4))
+        plt.plot(theo_b * self.scaling_factor, label='GNM Theoretical', color='blue')
+        if show_experimental:
+            if self.b_factors_exp is None:
+                self.fit_to_experimental_b_factors()
+            plt.plot(self.b_factors_exp, label='Experimental (PDB)', color='red', alpha=0.6)
+        plt.xlabel('Node Index')
+        plt.ylabel('B-factor ($A^2$)')
+        plt.title(title)
+        plt.legend()
+        return plt.show()
 
-    def write(self):
-
-        f_map = open('contact_map.oup','w')
-        
-        for ii in range(self.n_nodes):
-            for jj in range(ii+1,self.n_nodes):
-                if self.contact_map[ii][jj] == True :
-                    f_map.write("%s %s \n" %(self.system.atom_indices[ii],self.atom_indices[jj]))
-        f_map.close()
-
-        f_vects = open('gnm_vects.oup','w')
-
-        f_vects.write("%s Modes, %s Nodes \n" %(len(self.n_nodes),len(self.n_nodes)))
-        f_vects.write(" \n")
-        for ii in range(self.n_nodes):
-            for jj in range(self.n_nodes):
-                f_vects.write("%s %f \n" %(self.atom_indices[jj], self.eigenvectors[ii][jj]))
-            f_vects.write(" \n")
-
+    def get_best_cutoff(self, min_cutoff='5 angstroms', max_cutoff='15 angstroms', steps=10):
+        cutoffs = np.linspace(puw.get_value(min_cutoff, to_unit='angstroms'), 
+                             puw.get_value(max_cutoff, to_unit='angstroms'), steps)
+        best_corr = -1.0
+        best_cutoff = None
+        for c in cutoffs:
+            self.calculate_contacts(cutoff=f"{c} angstroms")
+            _, corr = self.fit_to_experimental_b_factors()
+            if corr > best_corr:
+                best_corr = corr
+                best_cutoff = c
+        self.calculate_contacts(cutoff=f"{best_cutoff} angstroms")
+        return puw.quantity(best_cutoff, 'angstroms'), best_corr

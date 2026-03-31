@@ -1,263 +1,141 @@
+from elasnetmt.model.elastic_network_model import ElasticNetworkModel
+from elasnetmt._private.smonitor import ElasNetMTWarning, warn
+from argdigest import arg_digest
+from depdigest import dep_digest
+import numpy as np
+import numpy.linalg as la
 import molsysmt as msm
 from elasnetmt import pyunitwizard as puw
-import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from tqdm import tqdm
-from copy import deepcopy
-from sklearn.linear_model import LinearRegression
-import nglview as nv
-import lindelint as ldl
+import smonitor
+import time
 
+# Numba Kernel for Hessian Construction
+try:
+    from numba import njit, prange
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
 
-class AnisotropicNetworkModel():
+if HAS_NUMBA:
+    @njit(parallel=True)
+    def _build_hessian_numba(coords, contacts, n_nodes):
+        hessian = np.zeros((3 * n_nodes, 3 * n_nodes), dtype=np.float64)
+        for i in prange(n_nodes):
+            for j in range(n_nodes):
+                if i == j: continue
+                if contacts[i, j]:
+                    dx = coords[i, 0] - coords[j, 0]
+                    dy = coords[i, 1] - coords[j, 1]
+                    dz = coords[i, 2] - coords[j, 2]
+                    r2 = dx*dx + dy*dy + dz*dz
+                    h00 = -dx * dx / r2; h01 = -dx * dy / r2; h02 = -dx * dz / r2
+                    h11 = -dy * dy / r2; h12 = -dy * dz / r2; h22 = -dz * dz / r2
+                    hessian[3*i, 3*j] = h00; hessian[3*i, 3*j+1] = h01; hessian[3*i, 3*j+2] = h02
+                    hessian[3*i+1, 3*j] = h01; hessian[3*i+1, 3*j+1] = h11; hessian[3*i+1, 3*j+2] = h12
+                    hessian[3*i+2, 3*j] = h02; hessian[3*i+2, 3*j+1] = h12; hessian[3*i+2, 3*j+2] = h22
+                    hessian[3*i, 3*i] -= h00; hessian[3*i, 3*i+1] -= h01; hessian[3*i, 3*i+2] -= h02
+                    hessian[3*i+1, 3*i] -= h01; hessian[3*i+1, 3*i+1] -= h11; hessian[3*i+1, 3*i+2] -= h12
+                    hessian[3*i+2, 3*i] -= h02; hessian[3*i+2, 3*i+1] -= h12; hessian[3*i+2, 3*i+2] -= h22
+        return hessian
 
-    def __init__(self, molecular_system, selection='atom_name=="CA"', structure_index=0, cutoff='9 angstroms',
-                 stiffness=None, syntax='MolSysMT'):
-
-        self.molecular_system = msm.convert(molecular_system, to_form="molsysmt.MolSys",
-                                            structure_indices=structure_index)
- 
-        self.atom_indices = None
-        self.n_nodes = 0
-        self.cutoff = None
-        self.stiffness = None
-        self.contacts = None
+class AnisotropicNetworkModel(ElasticNetworkModel):
+    @arg_digest()
+    def __init__(self, molecular_system, selection='atom_name=="CA"', structure_index=0, 
+                 cutoff='12 angstroms', stiffness=None, engine='auto', syntax='MolSysMT'):
+        super().__init__(molecular_system, selection=selection, structure_index=structure_index,
+                         cutoff=cutoff, syntax=syntax)
         self.hessian_matrix = None
-        self.eigenvalues = None
-        self.eigenvectors = None
-        self.frequencies = None
-        self.modes = None 
-        self.b_factors = None
-        self.b_factors_exp = None
-        self.scaling_factor = None
-        self.sqrt_deviation = None
-        self.correlation_matrix = None    
-        self.inverse = None
+        self.stiffness = stiffness
+        self.engine = engine
 
-        self.make_model(selection=selection, cutoff=cutoff, syntax=syntax)
-
-    def make_model(self, selection='atom_name=="CA"', cutoff='9 angstroms', syntax='MolSysMT'):
-
-        if selection is not None:
-            self.atom_indices = msm.select(self.molecular_system, selection=selection, syntax=syntax)
-
-        if cutoff is not None:
-            self.cutoff = puw.standardize(cutoff)
-
-        # contacts
-
-        contacts = msm.structure.get_contacts(self.molecular_system,
-                                              selection=self.atom_indices,
-                                              structure_indices=0,
-                                              threshold=self.cutoff)
-
-        self.contacts = contacts[0]
-
-        self.n_nodes = self.contacts.shape[0]
-
-        np.fill_diagonal(self.contacts, False)
-
-        # Hessian matrix: eigenvals, eigenvects
-
-        self.hessian_matrix = np.zeros((3*self.n_nodes, 3*self.n_nodes), dtype=float)
-
-        coordinates = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, structure_indices=0, coordinates=True)
-        coordinates = puw.get_value(coordinates[0])
-
-        for ii in range(self.n_nodes):
-            iii = ii*3
-            for jj in range(ii):
-                if self.contacts[ii,jj]:
-                    jjj = jj*3
-
-                    rij = coordinates[ii]-coordinates[jj]
-                    distance2 = np.dot(rij, rij)
-
-                    for kk in range(3):
-                        for gg in range(3):
-
-                            val_aux = -(coordinates[jj][kk]-coordinates[ii][kk])*(coordinates[jj][gg]-coordinates[ii][gg])/distance2
-
-                            ## Sub matrix Hij
-                            self.hessian_matrix[iii+kk, jjj+gg]=val_aux
-                            self.hessian_matrix[jjj+gg, iii+kk]=val_aux
-                        
-                            #Sub matrix Hii:
-                            self.hessian_matrix[iii+kk, iii+gg]-=val_aux
-                            self.hessian_matrix[jjj+gg, jjj+kk]-=val_aux
-
-        self.eigenvalues, self.eigenvectors = np.linalg.eigh(self.hessian_matrix)
-
-        # Frequencies and modes
-
-        self.modes = np.zeros(shape=(self.n_nodes*3, self.n_nodes, 3), dtype=float)
-
-        for aa in range(self.n_nodes*3):
-            for ii in range(self.n_nodes):
-                iii=ii*3
-                for jj in range(3):
-                    self.modes[aa,ii,jj]=self.eigenvectors[iii+jj,aa]
-
-        self.modes = self.modes[6:]
-        self.frequencies = self.eigenvalues[6:]
-
-    def show_contact_map(self):
-
-        plt.matshow(self.contacts, cmap='binary')
-        return plt.show()
-
-    def show_mode(self, mode=0, signed_amplitude=True, show_zero_line=True):
-
-        aux_mode = self.modes[mode]
-        amplitude_residue = np.sqrt(aux_mode[:,0]**2 + aux_mode[:,1]**2 + aux_mode[:,2]**2)
-
-        if signed_amplitude:
-
-            ref_residue = np.argmax(amplitude_residue)
-            ref_vector = aux_mode[ref_residue]
-            dot_product = np.einsum('ij,j->i', aux_mode, ref_vector)
-            signs = np.sign(dot_product)
-            amplitude_residue = amplitude_residue*signs
-
-        plt.plot(amplitude_residue)
-
-        if show_zero_line:
-            plt.axhline(0, ls='--', c='gray')
-
-        plt.show()
-
-    def view(self, protein=True, network=False, color_by_value=None, representation='cartoon', cmap='bwr'):
-
-        if protein:
-            output = msm.view(self.molecular_system)
-
-
-            if color_by_value is not None:
-
-                output.clear()
-
-                msm.thirds.nglview.set_color_by_value(output, color_by_value, element='group', representation=representation, cmap=cmap)
-
+    def _solve(self):
+        if self._eigenvalues is not None: return
+        t_start = time.time()
+        coordinates = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, 
+                              structure_indices=0, coordinates=True)
+        coords = puw.get_value(coordinates[0])
+        engine_to_use = self.engine
+        if engine_to_use == 'auto': engine_to_use = 'parallel' if HAS_NUMBA else 'vectorized'
+        if engine_to_use == 'parallel' and HAS_NUMBA:
+            self.hessian_matrix = _build_hessian_numba(coords, self.contacts, self.n_nodes)
         else:
-            output = nv.NGLWidget()
-
-        if network:
-
-            coordinates = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, coordinates=True)
-            coordinates = puw.get_value(coordinates[0], to_unit='angstroms')
-
-            for ii in range(self.n_nodes):
-                for jj in range(ii+1, self.n_nodes):
-                    if self.contacts[ii,jj]:
-
-                        kwargs = {'position1':coordinates[ii].tolist(),
-                                  'position2':coordinates[jj].tolist(),
-                                  'color': [0.6, 0.6, 0.6],
-                                  'radius': [0.2]}
-                        
-                        msg = output._get_remote_call_msg("addBuffer",
-                                            target="Widget",
-                                            args=["cylinder"],
-                                            kwargs=kwargs,
-                                            fire_embed=True)
-
-                        def callback(widget, msg=msg):
-                            widget.send(msg)
-
-                        callback._method_name = 'addBuffer'
-                        callback._ngl_msg = msg
-
-                        output._ngl_displayed_callbacks_before_loaded.append(callback)
-
-                        output._ngl_msg_archive.append(msg)
+            self.hessian_matrix = self._build_hessian_vectorized(coords)
+        if engine_to_use == 'gpu':
+            try:
+                import cupy as cp
+                h_gpu = cp.asarray(self.hessian_matrix)
+                e_gpu, v_gpu = cp.linalg.eigh(h_gpu)
+                self._eigenvalues = cp.asnumpy(e_gpu); self._eigenvectors = cp.asnumpy(v_gpu)
+            except ImportError:
+                self._eigenvalues, self._eigenvectors = la.eigh(self.hessian_matrix)
+        else:
+            self._eigenvalues, self._eigenvectors = la.eigh(self.hessian_matrix)
+        if self.n_nodes > 2 and np.isclose(self._eigenvalues[6], 0.0, atol=1e-8):
+            smonitor.emit_from_catalog("ENM-E020", source="elasnetmt.model.AnisotropicNetworkModel")
+        if np.any(self._eigenvalues[6:] < -1e-6):
+            smonitor.emit_from_catalog("ENM-E030", min_ev=float(np.min(self._eigenvalues)), source="elasnetmt.model.AnisotropicNetworkModel")
         
+        # Corrected smonitor.emit calls
+        smonitor.emit("DEBUG", "elasnetmt.model.spectral_stats", 
+                      max_rigid_ev=float(np.max(np.abs(self._eigenvalues[:6]))),
+                      first_vibrational_ev=float(self._eigenvalues[6]),
+                      spectral_gap=float(self._eigenvalues[6] - self._eigenvalues[5]))
 
-        return output
+        self._frequencies = np.sqrt(np.absolute(self._eigenvalues[6:]))
+        n_modes = 3 * self.n_nodes
+        self._modes = self._eigenvectors.T.reshape(n_modes, self.n_nodes, 3)
+        self._modes = self._modes[6:]
+        t_end = time.time()
+        smonitor.emit("INFO", "elasnetmt.model.make_model", engine=engine_to_use, nodes=self.n_nodes, time=t_end - t_start)
 
+    def _build_hessian_vectorized(self, coords):
+        n = self.n_nodes; hessian = np.zeros((3 * n, 3 * n), dtype=float)
+        diffs = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]
+        dist2 = np.sum(diffs**2, axis=2); outer_prods = np.einsum('ijk,ijg->ijkg', diffs, diffs)
+        mask = self.contacts; h_off_diag = np.zeros((n, n, 3, 3))
+        idx_i, idx_j = np.where(mask)
+        if len(idx_i) > 0: h_off_diag[idx_i, idx_j] = -outer_prods[idx_i, idx_j] / dist2[idx_i, idx_j, np.newaxis, np.newaxis]
+        for k in range(3):
+            for g in range(3): hessian[k::3, g::3] = h_off_diag[:, :, k, g]
+        h_diag_sum = -np.sum(h_off_diag, axis=1)
+        for k in range(3):
+            for g in range(3): hessian[k::3, g::3] += np.diag(h_diag_sum[:, k, g])
+        return hessian
 
-    def view_mode(self, mode=0, amplitude='6.0 angstroms', oscillation_steps=60, method='LinDelInt',
-                  representation='cartoon', color_by_amplitude=False, color_by_signed_amplitude=False, cmap='bwr',
-                  arrows=False, color_arrows='#808080', radius_arrows='0.2 angstroms'):
+    def get_eigenvalues(self, include_rigid_modes=False):
+        self._solve()
+        if include_rigid_modes: return self._eigenvalues
+        return self._eigenvalues[6:]
 
-        if oscillation_steps>0:
+    def get_modes(self):
+        self._solve()
+        return self._modes
 
-            molecular_system = self.trajectory_along_mode(mode=mode, amplitude=amplitude,
-                                                          oscillation_steps=oscillation_steps, method=method)
-            view = msm.view(molecular_system)
-
-        else:
-
-            view = msm.view(self.molecular_system)
-
-        if color_by_amplitude or color_by_signed_amplitude:
-
-            aux_mode = self.modes[mode]
-            amplitude_residue = np.sqrt(aux_mode[:,0]**2 + aux_mode[:,1]**2 + aux_mode[:,2]**2)
-
-            if color_by_signed_amplitude:
-
-                ref_residue = np.argmax(amplitude_residue)
-                ref_vector = aux_mode[ref_residue]
-                dot_product = np.einsum('ij,j->i', aux_mode, ref_vector)
-                signs = np.sign(dot_product)
-                amplitude_residue = amplitude_residue*signs
-
-            msm.thirds.nglview.set_color_by_value(view, amplitude_residue, element='group',
-                                                  representation=representation, mid_value=0.0,
-                                                  cmap=cmap)
-
-        if arrows:
-
-            origin_arrows = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, coordinates=True)
-            arrows = puw.quantity(100.0*self.modes[mode], 'angstroms')
-            end_arrows = origin_arrows + arrows
-
-            msm.thirds.nglview.add_arrows(view, origin_arrows, end_arrows,
-                                          color=color_arrows, radius=radius_arrows)
-
-        return view
-
-
-    def trajectory_along_mode(self, selection='all', mode=0, amplitude='6.0 angstroms', oscillation_steps=60,
-                              keep_box=False, method='LinDelInt', syntax='MolSysMT'):
-
-        # method in ['LinDelInt', 'physical']
-
-        if method=='LinDelInt':
-
-            coordinates_nodes = msm.get(self.molecular_system, element='atom', selection=self.atom_indices,
-                                        coordinates=True)
-            mode_array = self.modes[mode]
-
-            interpolator = ldl.Interpolator(puw.get_value(coordinates_nodes[0]), mode_array)
-
-            components_involved = msm.get(self.molecular_system, element='component', selection='atom_index in @self.atom_indices',
-                                          component_index=True)
-            atoms_involved = msm.get(self.molecular_system, element='atom', selection='component_index in @components_involved',
-                                     atom_index=True)
-            atom_indices = msm.select(self.molecular_system, element='atom', selection=selection, mask=atoms_involved, syntax=syntax)
-
-            molecular_system = msm.extract(self.molecular_system, selection=atom_indices)
-            coordinates = msm.get(molecular_system, element='atom', selection='all', coordinates=True)
-            direction_mode = interpolator.do_your_thing(puw.get_value(coordinates[0]))
-            direction_mode = direction_mode/np.linalg.norm(direction_mode)
-            max_norm_atom = -1.0
-            for ii in range(direction_mode.shape[0]):
-                norm_atom = np.linalg.norm(direction_mode[ii,:])
-                if max_norm_atom<norm_atom:
-                    max_norm_atom=norm_atom
-            factor = puw.quantity(amplitude)/max_norm_atom
-            delta_f=2.0*np.pi/(oscillation_steps*1.0)
-            new_coordinates = puw.quantity(np.zeros([oscillation_steps, coordinates.shape[1], coordinates.shape[2]], dtype=float), 'nm')
-            for frame in range(oscillation_steps):
-                new_coordinates[frame,:,:]=coordinates+factor*np.sin(delta_f*frame)*direction_mode
-
-            molecular_system = msm.remove(molecular_system, structure_indices=0)
-            msm.append_structures(molecular_system, new_coordinates)
-
-            if keep_box==False:
-                msm.set(molecular_system, element='system', box=None)
-
-            return molecular_system
-
+    @dep_digest('lindelint')
+    @arg_digest()
+    def trajectory_along_mode(self, mode=0, selection='all', amplitude='6.0 angstroms', oscillation_steps=60, syntax='MolSysMT'):
+        from lindelint import Interpolator
+        self._solve()
+        coords_nodes = msm.get(self.molecular_system, element='atom', selection=self.atom_indices, coordinates=True)
+        coords_nodes = puw.get_value(coords_nodes[0])
+        mode_vec = self._modes[mode]
+        target_indices = msm.select(self.molecular_system, selection=selection, syntax=syntax)
+        target_system = msm.extract(self.molecular_system, selection=target_indices)
+        coords_target = msm.get(target_system, element='atom', selection='all', coordinates=True)
+        coords_target_val = puw.get_value(coords_target[0])
+        interp = Interpolator(coords_nodes, mode_vec)
+        interpolated_mode = interp.do_your_thing(coords_target_val)
+        coords_target_nm = puw.get_value(coords_target[0], to_unit='nanometers')
+        interpolated_mode_nm = puw.convert(puw.quantity(interpolated_mode, 'angstroms'), to_unit='nanometers')
+        interpolated_mode_nm = puw.get_value(interpolated_mode_nm)
+        amplitude_val = puw.get_value(amplitude, to_unit='nanometers')
+        max_mode_norm = np.max(np.linalg.norm(interpolated_mode_nm, axis=1))
+        factor = amplitude_val / max_mode_norm if max_mode_norm > 0 else 0.0
+        frames = []
+        for step in range(oscillation_steps):
+            phase = 2.0 * np.pi * step / oscillation_steps
+            displacement = factor * np.sin(phase) * interpolated_mode_nm
+            frames.append(coords_target_nm + displacement)
+        new_coords = puw.quantity(np.array(frames), 'nanometers')
+        target_system = msm.remove(target_system, structure_indices=0); msm.append_structures(target_system, new_coords)
+        return target_system

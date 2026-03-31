@@ -1,23 +1,55 @@
 """
 ElasNetMT
-This must be a short description of the project
+A toolkit for Elastic Network Models in the MolSysSuite ecosystem.
 """
 
 # versioningit
-from ._version import __version__
+from importlib.metadata import version, PackageNotFoundError
 
-def __print_version__():
-    print("ElasNetMT version " + __version__)
+try:
+    __version__ = version("elasnetmt")
+except PackageNotFoundError:
+    # Package is not installed
+    try:
+        from ._version import __version__
+    except ImportError:
+        __version__ = "0.1.0"
 
-from . import config
-config.setup_logging(level="WARNING", capture_warnings=True, simplify_warning_format=True)
+# 1. SMonitor Configuration
+from smonitor.integrations import ensure_configured as _ensure_smonitor_configured
+from elasnetmt._private.smonitor import PACKAGE_ROOT as _SMONITOR_PACKAGE_ROOT
 
-from ._pyunitwizard import pyunitwizard
+_ensure_smonitor_configured(_SMONITOR_PACKAGE_ROOT)
 
-from . import model
+# 2. Units (PyUnitWizard)
+from ._pyunitwizard import puw as pyunitwizard
 
-# With the following list sphinx can document de methods in the api section without adding the
-# module files names explicitly:
+# 3. Expose Exceptions and Diagnostics
+from ._private.smonitor import (
+    ElasNetMTError,
+    ElasNetMTWarning,
+    ArgumentError,
+    InternalAlgorithmError,
+    LibraryNotFoundError,
+    warn,
+)
 
-__all__ = []
+# 4. Import Core Models
+from .model import (
+    ElasticNetworkModel,
+    GaussianNetworkModel,
+    AnisotropicNetworkModel,
+)
 
+# 5. Support ArgDigest and DepDigest
+from argdigest import arg_digest
+from depdigest import dep_digest
+
+__all__ = [
+    'pyunitwizard',
+    'GaussianNetworkModel',
+    'AnisotropicNetworkModel',
+    'ElasticNetworkModel',
+    'arg_digest',
+    'dep_digest',
+]
