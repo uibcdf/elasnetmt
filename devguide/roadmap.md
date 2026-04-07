@@ -37,6 +37,18 @@ This roadmap outlines the evolution of **ElasNetMT** from its current state to a
 - [ ] **Elastic Descriptors:** Build the featurization engine to extract "mechanical fingerprints" for ML models.
 - [ ] **Quaternary Assembly:** Develop mechanical complementarity metrics for predicting protein-protein association.
 
+## Cross-Cutting Track: MolSysViewer Add-on
+*Status: IN PROGRESS*
+
+- [x] **Add-on Skeleton:** `molsysviewer_elasnetmt` exists in-tree and is discoverable by MolSysViewer.
+- [x] **Viewer Runtime:** Cached runtime for ENM state, overlays, and parameters is implemented.
+- [x] **Overlay Adapters:** Contact links, normal mode vectors, and anisotropy ellipsoids are rendered through MolSysViewer shape primitives.
+- [x] **Reproducible Controls:** Actions, workbench helpers, runtime snapshots, and export helpers capture explicit ENM parameters.
+- [ ] **Extraction Readiness:** Keep the package layout compatible with a future split into `molsysviewer-elasnetmt`.
+- [ ] **Host Presentation:** Improve MolSysViewer UI presentation of enriched add-on workbench and export payloads.
+
+See [ElasNetMT Add-on Plan](elasnetmt_addon_plan.md) for the execution order and scope boundaries.
+
 ## Future Horizons
 - **Mechanopharmacology:** Force-responsive drug design.
 - **Environment-Aware ENM:** Temperature and pH-dependent elasticity.

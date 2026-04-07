@@ -23,6 +23,8 @@ pip install --no-deps --editable .
 
 - [Architecture](architecture.md): Class hierarchy and data flow.
 - [Roadmap](roadmap.md): Technical milestones toward version 1.0.0.
+- [ElasNetMT Add-on Plan](elasnetmt_addon_plan.md): Development plan for the MolSysViewer add-on implemented from this repository.
+- [ElasNetMT Add-on Demo](elasnetmt_addon_demo.md): Minimal reproducible flow for exercising the in-tree MolSysViewer add-on.
 - [Mathematical Foundations](mathematical_foundations.md): Kirchhoff and Hessian matrices, spectral analysis.
 - [SMonitor Integration](smonitor_integration.md): Diagnostic codes and signals.
 - [Units and Conventions](units_and_conventions.md): Physical quantities and force constants.
