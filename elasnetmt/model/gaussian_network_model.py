@@ -9,6 +9,17 @@ import time
 import molsysmt as msm
 from elasnetmt import pyunitwizard as puw
 
+
+def _length_to_angstroms(length):
+    if isinstance(length, str):
+        stripped = length.strip()
+        if stripped.endswith(" A"):
+            stripped = f"{stripped[:-2]} angstrom"
+        elif stripped == "A":
+            stripped = "angstrom"
+        length = puw.parse.parse(stripped)
+    return puw.get_value(length, to_unit='angstroms')
+
 # Numba Kernel for Kirchhoff Construction
 try:
     from numba import njit, prange
@@ -82,9 +93,16 @@ class GaussianNetworkModel(ElasticNetworkModel):
         self._modes = np.transpose(self._eigenvectors)
 
         t_end = time.time()
-        # Corrected smonitor.emit call
-        smonitor.emit("INFO", "elasnetmt.model.make_model", 
-                      engine=engine_to_use, nodes=self.n_nodes, time=t_end - t_start)
+        smonitor.emit(
+            "INFO",
+            "elasnetmt.model.make_model",
+            source="elasnetmt.model.GaussianNetworkModel",
+            extra={
+                "engine": engine_to_use,
+                "nodes": self.n_nodes,
+                "time": t_end - t_start,
+            },
+        )
 
     def get_eigenvalues(self):
         self._solve()
@@ -134,8 +152,11 @@ class GaussianNetworkModel(ElasticNetworkModel):
         return plt.show()
 
     def get_best_cutoff(self, min_cutoff='5 angstroms', max_cutoff='15 angstroms', steps=10):
-        cutoffs = np.linspace(puw.get_value(min_cutoff, to_unit='angstroms'), 
-                             puw.get_value(max_cutoff, to_unit='angstroms'), steps)
+        cutoffs = np.linspace(
+            _length_to_angstroms(min_cutoff),
+            _length_to_angstroms(max_cutoff),
+            steps,
+        )
         best_corr = -1.0
         best_cutoff = None
         for c in cutoffs:

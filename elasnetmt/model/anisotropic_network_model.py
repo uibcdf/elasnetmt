@@ -75,18 +75,32 @@ class AnisotropicNetworkModel(ElasticNetworkModel):
         if np.any(self._eigenvalues[6:] < -1e-6):
             smonitor.emit_from_catalog("ENM-E030", min_ev=float(np.min(self._eigenvalues)), source="elasnetmt.model.AnisotropicNetworkModel")
         
-        # Corrected smonitor.emit calls
-        smonitor.emit("DEBUG", "elasnetmt.model.spectral_stats", 
-                      max_rigid_ev=float(np.max(np.abs(self._eigenvalues[:6]))),
-                      first_vibrational_ev=float(self._eigenvalues[6]),
-                      spectral_gap=float(self._eigenvalues[6] - self._eigenvalues[5]))
+        smonitor.emit(
+            "DEBUG",
+            "elasnetmt.model.spectral_stats",
+            source="elasnetmt.model.AnisotropicNetworkModel",
+            extra={
+                "max_rigid_ev": float(np.max(np.abs(self._eigenvalues[:6]))),
+                "first_vibrational_ev": float(self._eigenvalues[6]),
+                "spectral_gap": float(self._eigenvalues[6] - self._eigenvalues[5]),
+            },
+        )
 
         self._frequencies = np.sqrt(np.absolute(self._eigenvalues[6:]))
         n_modes = 3 * self.n_nodes
         self._modes = self._eigenvectors.T.reshape(n_modes, self.n_nodes, 3)
         self._modes = self._modes[6:]
         t_end = time.time()
-        smonitor.emit("INFO", "elasnetmt.model.make_model", engine=engine_to_use, nodes=self.n_nodes, time=t_end - t_start)
+        smonitor.emit(
+            "INFO",
+            "elasnetmt.model.make_model",
+            source="elasnetmt.model.AnisotropicNetworkModel",
+            extra={
+                "engine": engine_to_use,
+                "nodes": self.n_nodes,
+                "time": t_end - t_start,
+            },
+        )
 
     def _build_hessian_vectorized(self, coords):
         n = self.n_nodes; hessian = np.zeros((3 * n, 3 * n), dtype=float)

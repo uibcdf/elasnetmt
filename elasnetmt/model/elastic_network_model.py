@@ -67,11 +67,16 @@ class ElasticNetworkModel():
         std_degree = np.std(node_degrees)
         isolated_nodes = np.where(node_degrees == 0)[0]
 
-        # Corrected smonitor.emit call
-        smonitor.emit("DEBUG", "elasnetmt.model.selection", 
-                      n_nodes=self.n_nodes,
-                      avg_degree=float(avg_degree),
-                      std_degree=float(std_degree))
+        smonitor.emit(
+            "DEBUG",
+            "elasnetmt.model.selection",
+            source="elasnetmt.model.ElasticNetworkModel",
+            extra={
+                "n_nodes": self.n_nodes,
+                "avg_degree": float(avg_degree),
+                "std_degree": float(std_degree),
+            },
+        )
 
         if len(isolated_nodes) > 0:
             smonitor.emit_from_catalog("ENM-W001", 

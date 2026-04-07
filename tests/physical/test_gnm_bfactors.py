@@ -1,6 +1,7 @@
 import pytest
 import molsysmt as msm
 from elasnetmt import GaussianNetworkModel
+from elasnetmt import pyunitwizard as puw
 import numpy as np
 
 @pytest.mark.physical
@@ -44,3 +45,34 @@ def test_gnm_best_cutoff_optimization():
     # Assert improvement or at least equality
     assert best_corr >= initial_corr
     assert best_cutoff.magnitude > 0
+
+
+@pytest.mark.physical
+def test_gnm_best_cutoff_accepts_length_variants():
+    """
+    The cutoff optimizer should accept abbreviated strings and typed quantities.
+    """
+    pdb_id = 'pdb_id:1tcd'
+
+    variants = [
+        ('6 A', '12 A'),
+        ('6 angstroms', '12 angstroms'),
+        (puw.quantity(6.0, 'angstroms'), puw.quantity(12.0, 'angstroms')),
+    ]
+
+    results = []
+    for min_cutoff, max_cutoff in variants:
+        gnm = GaussianNetworkModel(pdb_id, selection='atom_name=="CA"')
+        best_cutoff, best_corr = gnm.get_best_cutoff(
+            min_cutoff=min_cutoff,
+            max_cutoff=max_cutoff,
+            steps=4,
+        )
+        results.append((best_cutoff, best_corr))
+
+    reference_cutoff = puw.get_value(results[0][0], to_unit='angstroms')
+    reference_corr = results[0][1]
+
+    for best_cutoff, best_corr in results[1:]:
+        assert np.isclose(puw.get_value(best_cutoff, to_unit='angstroms'), reference_cutoff)
+        assert np.isclose(best_corr, reference_corr)
