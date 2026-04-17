@@ -65,7 +65,7 @@ def render_contact_network(
     structure_index: int = 0,
     cutoff: Any | None = None,
     syntax: str = "MolSysMT",
-    radii: Any = "0.2 angstroms",
+    radius: Any = "0.2 angstroms",
     color: int = 0x808080,
     alpha: float = 1.0,
     tag: str = "elasnetmt:contacts",
@@ -82,8 +82,8 @@ def render_contact_network(
     atom_pairs = build_contact_atom_pairs(model)
     layer = view.shapes.add_links(
         atom_pairs=atom_pairs,
-        radii=radii,
-        colors=color,
+        radius=radius,
+        color=color,
         alpha=alpha,
         tag=tag,
     )

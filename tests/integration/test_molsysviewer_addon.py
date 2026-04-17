@@ -17,6 +17,8 @@ def test_molsysviewer_elasnetmt_module_exposes_valid_addon_contract():
     assert module.addon.name == "elasnetmt"
     assert [item.id for item in module.addon.workspaces] == ["elasnetmt"]
     assert [item.id for item in module.addon.panels] == ["model", "modes", "figures"]
+    model_panel = next(p for p in module.addon.panels if p.id == "model")
+    assert model_panel.widget_class == "molsysviewer_elasnetmt.panels.model.ElasNetMTModelPanel"
     assert [item.id for item in module.addon.context_actions] == [
         "show-contact-network",
         "show-mode-vectors",
@@ -221,3 +223,91 @@ def test_molsysviewer_elasnetmt_demo_bundle_builds_complete_mvp_state():
     assert any(message.get("op") == "add_network_links" for message in view._message_history)
     assert any(message.get("op") == "add_displacement_vectors" for message in view._message_history)
     assert any(message.get("op") == "add_anisotropy_ellipsoids" for message in view._message_history)
+
+
+def test_elasnetmt_model_panel_widget_class_is_resolvable_via_view_addons_manager():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "model")
+
+    molsysviewer.addons.clear()
+    assert widget is not None
+    assert type(widget).__name__ == "ElasNetMTModelPanel"
+    assert isinstance(widget, molsysviewer.AddonPanelWidget)
+
+
+def test_elasnetmt_model_panel_on_mount_pushes_initial_state():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "model")
+    sent = []
+    widget.send = lambda msg: sent.append(msg)
+
+    widget.on_mount(view)
+    molsysviewer.addons.clear()
+
+    assert len(sent) == 1
+    assert sent[0]["type"] == "state"
+    state = sent[0]["state"]
+    assert state["model_kind"] == "gnm"
+    assert state["cutoff"] == "12 angstroms"
+    assert state["status"] == "idle"
+
+
+def test_elasnetmt_model_panel_set_model_kind_action_updates_runtime_and_pushes_state():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "model")
+    sent = []
+    widget.send = lambda msg: sent.append(msg)
+
+    widget.handle_action(view, "set_model_kind", {"model_kind": "anm"})
+    molsysviewer.addons.clear()
+
+    runtime = view._elasnetmt_addon_runtime
+    assert runtime.model_kind == "anm"
+    assert sent[-1]["state"]["model_kind"] == "anm"
+    assert any(e["event"] == "panel_set_model_kind" for e in runtime.event_log)
+
+
+def test_elasnetmt_model_panel_compute_action_builds_model_and_reports_n_nodes():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molecular_system = msm.convert("pdb_id:1tcd", to_form="molsysmt.MolSys")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+    view.load(molecular_system)
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "model")
+    sent = []
+    widget.send = lambda msg: sent.append(msg)
+
+    widget.handle_action(view, "compute", {})
+    molsysviewer.addons.clear()
+
+    states = [m for m in sent if m.get("type") == "state"]
+    assert states[0]["state"]["status"] == "computing"
+    final = states[-1]["state"]
+    assert final["status"] == "done"
+    assert final["n_nodes"] > 0
+
+    runtime = view._elasnetmt_addon_runtime
+    assert any(e["event"] == "panel_compute" for e in runtime.event_log)

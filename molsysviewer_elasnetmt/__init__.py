@@ -37,6 +37,7 @@ addon = AddonSpec(
             entry="molsysviewer_elasnetmt.panels.model",
             description="Model parameters and node selection.",
             order=10,
+            widget_class="molsysviewer_elasnetmt.panels.model.ElasNetMTModelPanel",
         ),
         AddonPanelSpec(
             id="modes",
