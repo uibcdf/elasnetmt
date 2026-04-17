@@ -311,3 +311,148 @@ def test_elasnetmt_model_panel_compute_action_builds_model_and_reports_n_nodes()
 
     runtime = view._elasnetmt_addon_runtime
     assert any(e["event"] == "panel_compute" for e in runtime.event_log)
+
+
+def test_elasnetmt_modes_panel_widget_class_is_registered():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    modes_panel = next(p for p in module.addon.panels if p.id == "modes")
+    assert modes_panel.widget_class == "molsysviewer_elasnetmt.panels.modes.ElasNetMTModesPanel"
+
+
+def test_elasnetmt_modes_panel_on_mount_pushes_initial_state():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "modes")
+    sent = []
+    widget.send = lambda msg: sent.append(msg)
+
+    widget.on_mount(view)
+    molsysviewer.addons.clear()
+
+    assert len(sent) == 1
+    assert sent[0]["type"] == "state"
+    state = sent[0]["state"]
+    assert state["mode_index"] == 0
+    assert state["status"] == "idle"
+    assert state["n_modes"] is None  # no model computed yet
+
+
+def test_elasnetmt_modes_panel_set_mode_index_action():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "modes")
+    sent = []
+    widget.send = lambda msg: sent.append(msg)
+
+    widget.handle_action(view, "set_mode_index", {"mode_index": 3})
+    molsysviewer.addons.clear()
+
+    runtime = view._elasnetmt_addon_runtime
+    assert runtime.active_mode_index == 3
+    assert sent[-1]["state"]["mode_index"] == 3
+    assert any(e["event"] == "panel_set_mode_index" for e in runtime.event_log)
+
+
+def test_elasnetmt_modes_panel_show_vectors_action_renders_and_reports_n_vectors():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molecular_system = msm.convert("pdb_id:1tcd", to_form="molsysmt.MolSys")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+    view.load(molecular_system)
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "modes")
+    sent = []
+    widget.send = lambda msg: sent.append(msg)
+
+    widget.handle_action(view, "show_mode_vectors", {"mode_index": 1})
+    molsysviewer.addons.clear()
+
+    states = [m for m in sent if m.get("type") == "state"]
+    assert states[0]["state"]["status"] == "rendering"
+    final = states[-1]["state"]
+    assert final["status"] == "done"
+
+    runtime = view._elasnetmt_addon_runtime
+    assert runtime.active_mode_index == 1
+    assert any(e["event"] == "panel_show_mode_vectors" for e in runtime.event_log)
+    assert any(msg.get("op") == "add_displacement_vectors" for msg in view._message_history)
+
+
+def test_elasnetmt_figures_panel_widget_class_is_registered():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    figures_panel = next(p for p in module.addon.panels if p.id == "figures")
+    assert figures_panel.widget_class == "molsysviewer_elasnetmt.panels.figures.ElasNetMTFiguresPanel"
+
+
+def test_elasnetmt_figures_panel_on_mount_pushes_initial_state():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "figures")
+    sent = []
+    widget.send = lambda msg: sent.append(msg)
+
+    widget.on_mount(view)
+    molsysviewer.addons.clear()
+
+    assert len(sent) == 1
+    state = sent[0]["state"]
+    assert state["active_preset"] == "structure_network"
+    assert state["format"] == "png"
+    assert state["overlays"] == []
+    assert state["status"] == "idle"
+
+
+def test_elasnetmt_figures_panel_set_preset_and_export_actions():
+    molsysviewer = pytest.importorskip("molsysviewer")
+    module = importlib.import_module("molsysviewer_elasnetmt")
+
+    molecular_system = msm.convert("pdb_id:1tcd", to_form="molsysmt.MolSys")
+
+    molsysviewer.addons.clear()
+    molsysviewer.addons.register(module.get_addon())
+    view = molsysviewer.MolSysView(debug_js=True)
+    view.load(molecular_system)
+    module.on_enable(view)
+    module.on_context_action(view, "show-contact-network", {})
+    module.on_context_action(view, "show-mode-vectors", {})
+
+    widget = view.addons.resolve_panel_widget("elasnetmt", "figures")
+    sent = []
+    widget.send = lambda msg: sent.append(msg)
+
+    widget.handle_action(view, "set_preset", {"preset": "structure_mode"})
+    assert sent[-1]["state"]["active_preset"] == "structure_mode"
+
+    sent.clear()
+    widget.handle_action(view, "export", {"preset": "structure_mode", "format": "png"})
+    molsysviewer.addons.clear()
+
+    states = [m for m in sent if m.get("type") == "state"]
+    assert states[0]["state"]["status"] == "exporting"
+    assert states[-1]["state"]["status"] == "done"
+
+    runtime = view._elasnetmt_addon_runtime
+    assert any(e["event"] == "panel_export_figure" for e in runtime.event_log)

@@ -45,6 +45,7 @@ addon = AddonSpec(
             entry="molsysviewer_elasnetmt.panels.modes",
             description="Normal mode selection and activation.",
             order=20,
+            widget_class="molsysviewer_elasnetmt.panels.modes.ElasNetMTModesPanel",
         ),
         AddonPanelSpec(
             id="figures",
@@ -52,6 +53,7 @@ addon = AddonSpec(
             entry="molsysviewer_elasnetmt.panels.figures",
             description="Export helpers and reproducible figure presets.",
             order=30,
+            widget_class="molsysviewer_elasnetmt.panels.figures.ElasNetMTFiguresPanel",
         ),
     ),
     context_actions=(
