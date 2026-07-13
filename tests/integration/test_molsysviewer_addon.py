@@ -37,6 +37,7 @@ def test_molsysviewer_elasnetmt_module_exposes_valid_addon_contract():
         "has_on_enable": True,
         "has_on_disable": True,
         "has_on_context_action": True,
+        "has_on_active_selection_changed": False,
     }
 
 
