@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the structural and data-flow design of **ElasNetMT**.
+This document describes the structural and data-flow design of **ElastNetMT**.
 
 ## Class Hierarchy
 
@@ -35,7 +35,7 @@ graph LR
 
 ## Lazy Evaluation Pattern
 
-To optimize performance, ElasNetMT objects are initialized in a **dormant state**.
+To optimize performance, ElastNetMT objects are initialized in a **dormant state**.
 
 1.  **Instantiation:** Only inputs (`molecular_system`, `selection`, `cutoff`) are stored.
 2.  **Contact Map:** Calculated only when needed for the Kirchhoff/Hessian construction.

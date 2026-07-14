@@ -1,6 +1,6 @@
 # Contribution Workflow
 
-All contributions to **ElasNetMT** must follow this standardized path to ensure stability and architectural integrity.
+All contributions to **ElastNetMT** must follow this standardized path to ensure stability and architectural integrity.
 
 ## Step 1: Branch and Smoke Test
 - Create a branch from `master` or `develop`.
@@ -33,5 +33,5 @@ All contributions to **ElasNetMT** must follow this standardized path to ensure 
 ## Technical Maintenance
 If you add a new third-party library, update:
 - `pyproject.toml`
-- `elasnetmt/_depdigest.py`
+- `elastnetmt/_depdigest.py`
 - `devtools/requirements.yaml`

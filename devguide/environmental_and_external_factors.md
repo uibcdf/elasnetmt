@@ -1,6 +1,6 @@
 # Environmental and External Factors
 
-Beyond intrinsic dynamics, ElasNetMT aims to model how proteins respond to their physical and chemical surroundings.
+Beyond intrinsic dynamics, ElastNetMT aims to model how proteins respond to their physical and chemical surroundings.
 
 ## 1. External Force Response (Mechanostability)
 

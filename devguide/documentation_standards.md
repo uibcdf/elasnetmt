@@ -1,6 +1,6 @@
 # Documentation Standards
 
-High-quality documentation is a signature of the **MolSysSuite**. ElasNetMT follows the **NumPy Style** for all Python docstrings.
+High-quality documentation is a signature of the **MolSysSuite**. ElastNetMT follows the **NumPy Style** for all Python docstrings.
 
 ## Docstring Structure
 

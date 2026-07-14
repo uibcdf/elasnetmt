@@ -1,6 +1,6 @@
 import pytest
 import molsysmt as msm
-from elasnetmt import AnisotropicNetworkModel
+from elastnetmt import AnisotropicNetworkModel
 import numpy as np
 
 @pytest.mark.integration

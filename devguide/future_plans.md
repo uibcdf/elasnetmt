@@ -1,6 +1,6 @@
 # Future Plans: Dynamics-Driven Drug Design
 
-ElasNetMT is envisioned as a central pillar for next-generation drug discovery within the **MolSysSuite**. By transitioning from static structural analysis to mechanical-elastic modeling, we aim to unlock new strategies for tackling complex pharmacological challenges.
+ElastNetMT is envisioned as a central pillar for next-generation drug discovery within the **MolSysSuite**. By transitioning from static structural analysis to mechanical-elastic modeling, we aim to unlock new strategies for tackling complex pharmacological challenges.
 
 ## 1. Ligand Perturbation and Allosterism
 
@@ -34,7 +34,7 @@ Understanding the "why" behind drug failure and new ways to block function.
 
 ## 5. Supramolecular Scale, Experimental Integration, and AI-Readiness
 
-To truly lead the field, ElasNetMT must bridge the gap between atomic physics, cellular biology, and machine learning.
+To truly lead the field, ElastNetMT must bridge the gap between atomic physics, cellular biology, and machine learning.
 
 - **Supramolecular Dynamics and Quaternary Assembly:** Implement high-performance iterative solvers (e.g., Lanczos, GPU-accelerated) to handle systems with millions of nodes. Beyond analysis, use mechanical complementarity to predict the assembly of **quaternary structures**, identifying how monomers associate into stable multimers (dimers, capsids) based on their intrinsic mode matching.
 - **Ensembles for AI-Driven Binder Generation (BindCraft/RFdiffusion):** Power generative AI tools by providing physically-realistic "conformational ensembles" of the target receptor. This ensures that binders designed by algorithms like **BindCraft** or **RFdiffusion** are robust across the target's entire range of motion, rather than just a single static PDB snapshot.
@@ -59,7 +59,7 @@ The final frontier is to move the protein from a vacuum into its real physical a
 
 - **Environment-Aware Elasticity (Temperature & pH):** Implement scaling laws for spring constants ($\gamma$) that respond to **Temperature** and **pH**. This will allow us to predict "local melting" or "pH-induced softening," which is critical for designing drugs that target acidic tumor environments or respond to thermal stress.
 - **Mechanopharmacology (Force-Responsive Drug Design):** Study how therapeutic targets behave under **mechanical stress** (e.g., blood flow or muscle contraction). Simulate "stretching" or "compression" states to see how binding affinity changes under physical tension.
-- **Interactive "Live" Haptic Dynamics:** Full integration with **MolSysViewer** for real-time manipulation. Users should be able to "pull" a protein loop in the 3D viewer and have ElasNetMT instantly calculate the relaxation of the entire network.
+- **Interactive "Live" Haptic Dynamics:** Full integration with **MolSysViewer** for real-time manipulation. Users should be able to "pull" a protein loop in the 3D viewer and have ElastNetMT instantly calculate the relaxation of the entire network.
 - **Quantum-Elastic Hybrids (QM/ENM):** Treat the active site with **Quantum Mechanics (QM)** potentials to define the ligand-pocket springs, while the rest of the protein "chassis" remains under a simple harmonic ENM. This provides "Gold Standard" precision for dynamic docking.
 - **Rotameric-Level ENM (Side-chain Flexibility):** Beyond Carbon-alpha, include degrees of freedom for **side-chain rotamers**. This captures the "last mile" of pocket flexibility, where the rotation of a single Tryptophan or Phenylalanine can decide a drug's entry.
 

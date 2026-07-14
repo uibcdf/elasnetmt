@@ -80,15 +80,15 @@ jobs:
         echo "::group::Importing module from home directory"
         cd
         pwd
-        echo 'import elasnetmt; print("Version of the package: {}".format(elasnetmt.__version__))' | python
+        echo 'import elastnetmt; print("Version of the package: {}".format(elastnetmt.__version__))' | python
         echo "::endgroup::"
 
     - name: Run tests
       shell: bash -l {0}
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)
-        # pytest -n logical -v --cov-config=.coveragerc --cov=elasnetmt --cov-report=xml --junitxml=junit.xml --color=yes
-        pytest -v --cov-config=.coveragerc --cov=elasnetmt --cov-report=xml --junitxml=junit.xml --color=yes
+        # pytest -n logical -v --cov-config=.coveragerc --cov=elastnetmt --cov-report=xml --junitxml=junit.xml --color=yes
+        pytest -v --cov-config=.coveragerc --cov=elastnetmt --cov-report=xml --junitxml=junit.xml --color=yes
 
     - name: Check coverage
       shell: bash -l {0}

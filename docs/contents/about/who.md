@@ -1,6 +1,6 @@
 # Who is behind?
 
-ElasNetMT is a project conceived and developed by the members of
+ElastNetMT is a project conceived and developed by the members of
 the [Computational Biology and Drug Design Research Unit
 (UIBCDF)](https://www.uibcdf.org/) at the 
 [Mexican National Institute of Health - Children's Hospital of Mexico Federico Gómez](http://www.himfg.edu.mx/).
@@ -12,7 +12,7 @@ the [Computational Biology and Drug Design Research Unit
 
 ## Contributors
 
-*Feel free to become an ElasNetMT contributor*
+*Feel free to become an ElastNetMT contributor*
 
 </br>
 

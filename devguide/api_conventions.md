@@ -1,6 +1,6 @@
 # API Conventions
 
-To ensure consistency within the **MolSysSuite**, ElasNetMT follows a strict naming and behavioral convention for all public methods.
+To ensure consistency within the **MolSysSuite**, ElastNetMT follows a strict naming and behavioral convention for all public methods.
 
 ## Method Naming Prefixes
 

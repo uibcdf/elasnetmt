@@ -1,6 +1,6 @@
 # Visualization Protocols
 
-ElasNetMT works in tandem with **MolSysViewer** to provide interactive visual representations of elastic networks.
+ElastNetMT works in tandem with **MolSysViewer** to provide interactive visual representations of elastic networks.
 
 ## 1. Contact Map (Adjacency Matrix)
 Rendered as a binary matrix (`matplotlib`). 

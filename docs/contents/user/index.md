@@ -2,7 +2,7 @@
 
 ## Quickstart guide
 
-If you are wondering what ElasNetMT can do for you, start with the [Quickstart
+If you are wondering what ElastNetMT can do for you, start with the [Quickstart
 in the Showcase](../showcase/quickstart.ipynb) for a hands-on first
 look. We hope you find it useful!
 
@@ -13,14 +13,14 @@ look. We hope you find it useful!
 :::{grid-item-card} Introduction
 :columns: 4
 :link: intro/index.html
-Get familiar with ElasNetMT’s principles and **installation
+Get familiar with ElastNetMT’s principles and **installation
 steps**.
 :::
 
 :::{grid-item-card} Models
 :columns: 4
 :link: tools/index.html
-Explore the different elastic network models offered by ElasNetMT.
+Explore the different elastic network models offered by ElastNetMT.
 :::
 
 
@@ -43,6 +43,6 @@ Practical “recipes” and short examples to solve common tasks and real-world 
 
 ## AI Assistants
 
-Experimental AI chatbots trained to help you work with ElasNetMT are available
+Experimental AI chatbots trained to help you work with ElastNetMT are available
 in here: [AI Assistants](../ai_assistants.md).
 We'd love your feedback!

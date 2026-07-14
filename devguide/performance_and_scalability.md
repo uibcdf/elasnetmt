@@ -1,6 +1,6 @@
 # Performance and Scalability
 
-ENM calculations are computationally intensive, especially for large systems. ElasNetMT aims to be efficient for systems up to several thousand nodes.
+ENM calculations are computationally intensive, especially for large systems. ElastNetMT aims to be efficient for systems up to several thousand nodes.
 
 ## Optimization Strategy
 

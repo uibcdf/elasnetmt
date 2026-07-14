@@ -1,6 +1,6 @@
 # SMonitor Integration
 
-ElasNetMT follows the **SMonitor** standard for diagnostics and telemetry.
+ElastNetMT follows the **SMonitor** standard for diagnostics and telemetry.
 
 ## Diagnostic Codes
 
@@ -15,6 +15,6 @@ ElasNetMT follows the **SMonitor** standard for diagnostics and telemetry.
 
 ## Telemetry Signals
 
-- **`elasnetmt.model.selection` (DEBUG):** Reports `n_nodes` and degree distribution (mean/std).
-- **`elasnetmt.model.spectral_stats` (DEBUG):** Reports max rigid eigenvalue and spectral gap.
-- **`elasnetmt.model.make_model` (INFO):** Reports engine used, node count, and calculation time.
+- **`elastnetmt.model.selection` (DEBUG):** Reports `n_nodes` and degree distribution (mean/std).
+- **`elastnetmt.model.spectral_stats` (DEBUG):** Reports max rigid eigenvalue and spectral gap.
+- **`elastnetmt.model.make_model` (INFO):** Reports engine used, node count, and calculation time.

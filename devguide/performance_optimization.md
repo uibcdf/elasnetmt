@@ -1,6 +1,6 @@
 # Performance Optimization Strategy
 
-ElasNetMT is designed to be the high-performance dynamics engine of the **MolSysSuite**. To achieve this, we follow a tiered optimization strategy that scales from standard workstations to high-performance computing (HPC) clusters.
+ElastNetMT is designed to be the high-performance dynamics engine of the **MolSysSuite**. To achieve this, we follow a tiered optimization strategy that scales from standard workstations to high-performance computing (HPC) clusters.
 
 ## The Performance Bottleneck
 

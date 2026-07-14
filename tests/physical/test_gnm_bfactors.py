@@ -1,7 +1,7 @@
 import pytest
 import molsysmt as msm
-from elasnetmt import GaussianNetworkModel
-from elasnetmt import pyunitwizard as puw
+from elastnetmt import GaussianNetworkModel
+from elastnetmt import pyunitwizard as puw
 import numpy as np
 
 @pytest.mark.physical

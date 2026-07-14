@@ -1,12 +1,12 @@
 # Inverse Dynamic Design: Engineering Motion
 
-This document explores one of the most ambitious frontiers of ElasNetMT: the ability to reverse-engineer molecular networks to achieve specific functional movements.
+This document explores one of the most ambitious frontiers of ElastNetMT: the ability to reverse-engineer molecular networks to achieve specific functional movements.
 
 ## The Core Question
 
-> **"Is it possible for ElasNetMT to tell us where to add nodes, with what connections, and what stiffness, to induce the exact deformations we want?"**
+> **"Is it possible for ElastNetMT to tell us where to add nodes, with what connections, and what stiffness, to induce the exact deformations we want?"**
 
-The answer is a definitive **Yes**. By applying perturbation theory and sensitivity analysis to the Hessian and Kirchhoff matrices, ElasNetMT can transition from an analysis tool to a design engine.
+The answer is a definitive **Yes**. By applying perturbation theory and sensitivity analysis to the Hessian and Kirchhoff matrices, ElastNetMT can transition from an analysis tool to a design engine.
 
 ## Technical Mechanism: Sensitivity Analysis
 

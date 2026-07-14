@@ -1,6 +1,6 @@
 # Mathematical Foundations
 
-ElasNetMT implements analytical solutions for protein dynamics based on the spectral analysis of contact-based matrices.
+ElastNetMT implements analytical solutions for protein dynamics based on the spectral analysis of contact-based matrices.
 
 ## 1. Gaussian Network Model (GNM)
 

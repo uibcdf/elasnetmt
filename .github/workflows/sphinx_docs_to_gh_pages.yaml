@@ -62,7 +62,7 @@ jobs:
           echo "::group::Importing module from home directory"
           cd
           pwd
-          echo 'import elasnetmt; print("Version of the package: {}".format(elasnetmt.__version__))' | python
+          echo 'import elastnetmt; print("Version of the package: {}".format(elastnetmt.__version__))' | python
           echo "::endgroup::"
 
       - name: Running the Sphinx to gh-pages Action

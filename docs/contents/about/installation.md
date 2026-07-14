@@ -1,9 +1,9 @@
 # Installation
 
-ElasNetMT is distributed through the 'uibcdf' conda channel.
+ElastNetMT is distributed through the 'uibcdf' conda channel.
 If there is no reason to install the library from the source code, we highly recommend working with
 conda.
 
 ```bash
-conda install -c uibcdf elasnetmt
+conda install -c uibcdf elastnetmt
 ```

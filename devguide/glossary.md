@@ -1,6 +1,6 @@
 # Glossary
 
-To ensure clarity in the code and documentation, ElasNetMT uses the following definitions:
+To ensure clarity in the code and documentation, ElastNetMT uses the following definitions:
 
 | Term | Definition |
 | :--- | :--- |

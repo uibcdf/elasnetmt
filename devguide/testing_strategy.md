@@ -1,6 +1,6 @@
 # Testing Strategy
 
-ElasNetMT follows a Tiered testing protocol to ensure code integrity and physical correctness.
+ElastNetMT follows a Tiered testing protocol to ensure code integrity and physical correctness.
 
 ## Tier 1: Smoke Tests (Unit)
 - **Purpose:** Ensure the library imports and basic objects are created without crashing.
@@ -32,5 +32,5 @@ pytest tests/
 ```
 To check coverage:
 ```bash
-pytest --cov=elasnetmt
+pytest --cov=elastnetmt
 ```

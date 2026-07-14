@@ -20,18 +20,18 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import elasnetmt
+import elastnetmt
 
 # -- Project information -----------------------------------------------------
 
-project = 'ElasNetMT'
+project = 'ElastNetMT'
 copyright = ''
 
 # The short X.Y version
-version = elasnetmt.__version__.split('+')[0]
+version = elastnetmt.__version__.split('+')[0]
 # The full version, including alpha/beta/rc tags
-#release = elasnetmt.__version__ # This version includes git tag
-release = elasnetmt.__version__.split('+')[0]
+#release = elastnetmt.__version__ # This version includes git tag
+release = elastnetmt.__version__.split('+')[0]
 
 print(f'version {version}, release {release}')
 
@@ -160,7 +160,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/uibcdf/elasnetmt",
+            "url": "https://github.com/uibcdf/elastnetmt",
             "icon": "fa-brands fa-github",
         },
     ],
@@ -170,7 +170,7 @@ html_theme_options = {
 
 html_context = {
     "github_user": "uibcdf",
-    "github_repo": "elasnetmt",
+    "github_repo": "elastnetmt",
     "github_version": "main",
     "doc_path": "docs",
 }
@@ -211,7 +211,7 @@ def setup(app):
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'elasnetmtdoc'
+htmlhelp_basename = 'elastnetmtdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
