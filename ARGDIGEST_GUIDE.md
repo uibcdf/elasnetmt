@@ -5,12 +5,29 @@ Source of truth for integrating and using **ArgDigest** in this library.
 Metadata
 - Source repository: `argdigest`
 - Source document: `standards/ARGDIGEST_GUIDE.md`
-- Source version: `argdigest@0.9.3-dev`
-- Last synced: 2026-03-10
+- Source version: `argdigest@0.11.0` plus unreleased `main`
+- Last synced: 2026-08-13
+
+Since `0.11.0` this guide changed in two ways that affect an integration: `*args` and
+positional-only parameters are supported and documented (§5), and the `ValidatedPayload`
+passport was **removed** rather than replaced, leaving `skip_digestion` as the single
+mechanism (§6).
 
 ## What is ArgDigest
 
 ArgDigest is a lightweight toolkit for **auditing, validating, and normalizing** function arguments in scientific libraries. It decouples complex input-handling logic from scientific code by providing a standardized orchestration layer.
+
+It covers **two axes**, and an integration is only complete when both are declared:
+
+| Axis | Question it answers | You declare |
+| --- | --- | --- |
+| **1. The function argument contract** | *May this function receive this argument at all, and does it have what it needs?* | `FunctionContract` and `Domain` |
+| **2. The argument value contract** | *Given an argument name, is its value valid and in canonical form?* | one digester per argument name |
+
+Axis 2 has always been the visible half. Axis 1 arrived in `0.10.0`, and without it
+function-dependent rules have nowhere to live: they end up scattered across per-argument
+digesters, one `if caller == ...` at a time, and the contract of a function is never
+written down in one readable place.
 
 ## Why this matters in this library
 
@@ -26,10 +43,24 @@ Create a file named `_argdigest.py` in your package root. ArgDigest uses the mod
 ```python
 # MyLibrary/_argdigest.py
 
-DIGESTION_SOURCE = "MyLibrary._private.digestion.argument"
+# Axis 2 -- the value contract of each argument.
+DIGESTION_SOURCE = "MyLibrary._private.argdigest.argument"
 DIGESTION_STYLE = "package"
-STRICTNESS = "warn" # "warn", "error", or "ignore"
+STRICTNESS = "warn"            # missing digester for a declared parameter
+
+# Axis 1 -- the argument contract of each function.
+FUNCTION_SOURCE = "MyLibrary._private.argdigest.function"
+DOMAIN_SOURCE = "MyLibrary._private.argdigest.domain"
+UNKNOWN_ARGUMENT = "error"     # keyword outside the function's contract
+
+# Declared aliases, applied before both axes.
+NORMALIZATION_SOURCE = "MyLibrary._private.argdigest.normalization"
 ```
+
+`STRICTNESS` and `UNKNOWN_ARGUMENT` answer different questions and address different
+people. A missing digester is a to-do for the library author, so `warn` is right. A
+keyword nobody declared is a mistake by whoever made the call, and warning is not enough:
+warnings are routinely filtered off exactly where users read output.
 
 ### Advanced Configuration
 You can also load configurations from external files:
@@ -111,7 +142,47 @@ def heavy_func(data):
 print(heavy_func.audit_log)
 ```
 
-## 4.3 Caller-aware optional semantics
+## 4.3 Declared normalization (argument-name aliases)
+
+A library should accept the names its users type. Declare them as data, one module per
+family of rules in `NORMALIZATION_SOURCE`:
+
+```python
+from argdigest import AliasTable
+
+# everywhere
+table = AliasTable(aliases={'residue_index': 'group_index'})
+
+# only in one function, or a family
+AliasTable(applies_to='mylib.basic.compare.compare',
+           aliases={'attributes_type': 'attribute_type'})
+AliasTable(applies_to='mylib.form.*', aliases={'idx': 'index'})
+
+# guarded on another argument of the same call
+AliasTable(applies_to='mylib.basic.get.get', when={'element': 'atom'},
+           aliases={'name': 'atom_name', 'index': 'atom_index'})
+```
+
+Tables compose most-specific-first, renaming is a single pass, and argument order is
+preserved.
+
+**Scope the table to the callers where the alias means what it says.** A name that is an
+attribute in one function is often an ordinary parameter in another; declaring an
+attribute synonym globally in MolSysMT rewrote a real adapter parameter and broke 76
+tests.
+
+**Write the tables out; do not generate them.** A `{element}_{name}` template is shorter
+and admits names that do not exist -- it produced six attributes nothing defines, so a
+wrong name failed far from where it was written.
+
+Normalization runs **before** the function contract, so declaring a contract never breaks
+a library's aliases, while a genuine typo survives unchanged and is refused.
+
+The `standardizer` hook still runs, after the declared tables, and remains the escape
+hatch for a rename that cannot be stated as a table. Its contract is
+`(caller, kwargs) -> mapping`, checked at both decoration and call time.
+
+## 4.4 Caller-aware optional semantics
 
 ArgDigest must support public APIs whose valid input contract depends on the
 callable that is being digested. This is not an escape hatch; it is a normal
@@ -136,6 +207,131 @@ Do not push valid public APIs outside digestion just because some arguments are
 optional for specific callables. If the API contract is legitimate, ArgDigest
 should express it.
 
+Caller-keyed digesters remain the right tool for **value** semantics that depend on the
+callable. What does *not* belong there is which arguments a function accepts at all: that
+is axis 1, and it has its own place since `0.10.0`. See section 4.5.
+
+## 4.5 The function argument contract (axis 1)
+
+### Why the default is strict
+
+Plain Python raises `TypeError` for an unexpected keyword. **ArgDigest must never end up
+more permissive than the language it wraps**, so `UNKNOWN_ARGUMENT` defaults to `error`.
+This restores parity rather than inventing a policy, and it closes a defect class that is
+the worst kind in a scientific library: a mistyped argument that runs with the default and
+returns a plausible wrong answer.
+
+### What you get for free
+
+| Your function | Its default contract | You declare |
+| --- | --- | --- |
+| closed signature | held to its own parameters | nothing |
+| declares `**kwargs` | admits anything | a domain, or it stays permissive |
+
+A closed signature already *is* a domain, so most functions are protected without a line
+of configuration. A function with `**kwargs` opened its door deliberately and ArgDigest
+cannot guess what it meant.
+
+### Declaring a domain
+
+A `Domain` is a named, introspectable set of admissible keyword names. Point it at your
+library's own source of truth rather than copying names into a list, so the two cannot
+drift apart:
+
+```python
+# MyLibrary/_private/argdigest/domain/attribute.py
+from argdigest import Domain
+from MyLibrary.attribute import attributes, is_attribute
+
+domain = Domain(name='attribute', contains=is_attribute,
+                members=lambda: tuple(attributes),
+                description='canonical attribute names')
+```
+
+`contains` decides membership; `members` enumerates it when possible, which is what
+enables near-miss suggestions and introspection. Either is enough.
+
+### A domain that depends on another argument
+
+Sometimes which keywords are admissible depends on a value in the same call: an engine, an
+output type, a mode. Declare the table and the argument it keys on:
+
+```python
+Domain(
+    name='engine_options',
+    depends_on='engine',
+    by_value={
+        'MolSysMT': ('threshold', 'parallel'),
+        'OpenMM':   ('threshold', 'platform'),
+    },
+)
+```
+
+`depends_on` may name several arguments, in which case the table is keyed by a tuple.
+
+It is still data: `describe_contract` renders the whole table, so the options each value
+accepts can be documented rather than discovered by reading code.
+
+**A value with no entry does not refuse anything.** It means the domain cannot decide for
+this call — usually because that value is itself wrong — and the argument carrying it is
+about to be rejected by its own digester, which explains the real problem far better than
+a complaint about an unknown argument would.
+
+**Key on an argument, not on a derivation.** The table is consulted per call, so the value
+must be cheap to read. If deciding the domain requires computing something expensive from
+another argument, the mechanism costs more than it saves and the function is better left
+permissive with the reason recorded.
+
+### Declaring a contract
+
+```python
+# MyLibrary/_private/argdigest/function/get.py
+from argdigest import FunctionContract
+
+contract = FunctionContract(
+    caller='MyLibrary.basic.get.get',
+    admits='attribute',                 # signature + this domain
+)
+```
+
+A module may declare one `contract`, or several through a `CONTRACTS` list. Beyond
+`admits`, a contract can declare `requires_any_of`, `mutually_exclusive` and
+`co_required`.
+
+Use `caller_pattern` instead of `caller` to cover a family, with `fnmatch` syntax:
+
+```python
+contract = FunctionContract(caller_pattern='MyLibrary.form.*.to_file_h5msm',
+                            admits='signature')
+```
+
+Resolution is **most specific first**: exact caller, then the longest matching pattern,
+then the default.
+
+### Where it runs, and why there
+
+```
+bind_arguments -> standardizer -> function contract -> digestion
+```
+
+After the standardizer, so an alias that has just become its canonical name is never
+mistaken for a typo. Before digestion, because validating the value of an argument that
+should not be there is wasted work ending in a confusing failure.
+
+### Reading a contract back
+
+`describe_contract(contract, domains)` renders it as plain data. This is why a contract is
+declarative rather than an opaque callable: the accepted domain of a `**kwargs` function
+is invisible to `inspect.signature`, and this is what makes it readable again for
+documentation, IDEs and agents.
+
+### Known gap
+
+A **delegating** domain, whose admissible keywords depend on values resolved at call time
+-- a converter chosen by a `to_form` argument, for instance -- is not expressible, because
+a `Domain` decides membership from the keyword alone. Those functions keep the permissive
+default.
+
 ## 5. Required behavior (non-negotiable)
 
 1.  **Lazy Digestion**: Digestion only happens when the function is called.
@@ -143,6 +339,20 @@ should express it.
 3.  **Support skip_digestion**: All decorated functions should allow bypassing digestion via a `skip_digestion` parameter for internal performance-critical calls.
 4.  **Argument Dependencies**: Digesters can request other (already digested) arguments by simply adding them to their signature. ArgDigest handles the topological sort and cycle detection.
 5.  **Caller-aware Optionality**: Downstream libraries may accept `None` or otherwise relaxed values for specific public callables. These semantics belong in digesters, not in bypasses around `@arg_digest`.
+6.  **Do not re-digest what you already digested**: pass `skip_digestion=True` on internal calls carrying values your library just built. It is the only mechanism for this, and it never belongs on a public API boundary. See §6.
+7.  **Declare both axes**: a function taking `**kwargs` must declare the domain those keywords come from. Leaving it undeclared means the function accepts anything, which is the defect axis 1 exists to prevent. If a domain genuinely cannot be expressed, record why.
+
+### Functions taking `*args` or positional-only parameters
+
+Both are supported and keep their call shape: `*args` is unpacked back into operands,
+and a positional-only parameter is passed positionally.
+
+One consequence is worth knowing before you write the digester: **`*args` is bound as a
+single tuple and digested once**, under the parameter's own name. A digester named
+`digest_items` for `def combine(*items)` receives `('a', 'b')`, not `'a'` and then `'b'`.
+That is deliberate — it is what lets the digester assert something about the group, such
+as requiring at least one operand — but it means the digester must be written against a
+collection.
 
 ## SMonitor Integration
 
@@ -160,22 +370,49 @@ includes execution context and the original exception text.
 ---
 *Document created on February 6, 2026, as the authority for ArgDigest integration.*
 
-## 5. Performance: The Normalization Passport (`ValidatedPayload`)
+## 6. Not re-digesting what you already digested
 
-To avoid redundant unit conversions and introspection in recursive function calls, `argdigest` supports a "Passport" protocol.
-
-### 5.1 What is a `ValidatedPayload`?
-It is a lightweight container that carries a value along with its verified metadata (unit, dtype, etc.). When the `@arg_digest` decorator receives a `ValidatedPayload`, it bypasses standard digestion if the contract matches.
-
-### 5.2 Emitting Payloads
-Scientific pipelines (e.g., `sci:nm_float64_payload`) should return a `ValidatedPayload` instead of a raw array when internal trust is desired.
+There is **one** mechanism, and it is the one you already know:
 
 ```python
-from argdigest.core.contract import ValidatedPayload
-# Inside a pipeline or custom digester
-return ValidatedPayload(value=array, unit="nm", dtype="float64")
+result = internal_helper(coordinates, skip_digestion=True)
 ```
 
-### 5.3 Benefits
-- **Zero Latency**: Internal calls skip PyUnitWizard entirely.
-- **Contract Safety**: Guarantees JIT-ready data (e.g., float64) across function boundaries.
+`skip_digestion=True` turns digestion off for that call. Measured, it costs 1.8 µs
+against 21.6 µs for the decorator's ordinary path, and on a real digester —
+`molsysmt_MolSys.has_attribute` — 7.5 µs against 65.6 µs.
+
+**Use it for internal calls, with values your library just built. Never on a public API
+boundary**, where the value comes from a user and there is no trust to claim.
+
+### If digestion dominates an operation, find out why first
+
+A bypass is not the answer to a slow path, and reaching for one hides the reason. The
+one measured case in this ecosystem was a predicate whose body is 7.5 µs wearing a
+boundary-grade digester nine times its weight, called 434 times for a single user
+action. No bypass fixes that; correct placement does.
+
+Digestion belongs at API boundaries. A digester on an internal predicate is a placement
+problem.
+
+### On the passport that used to be here
+
+Earlier versions offered a `ValidatedPayload` — a container carrying a value plus its
+verified metadata, which the decorator unwrapped and let past its digester. It was
+removed, and the reasoning is worth keeping because it applies to anything proposed in
+its place.
+
+The container changed the value's **type**, so it had to be unwrapped before the
+function body ran, so it stopped travelling at the first body it met — a value passing
+through five nested calls was re-digested four times anyway. And the claim it carried
+described the *value* rather than the *verification*, so a payload issued by one
+library's digester silenced another library's digester for the same argument name.
+
+A design that fixed both — certifying the value by identity, with the claim bound to the
+digester that issued it — was built and measured. It worked, and it was still declined:
+it asked every digester author to learn three new concepts to solve a problem no
+consumer had actually hit. Measured across MolSysMT, MolSysViewer and PyUnitWizard, the
+passport had zero users.
+
+If you find yourself needing it, that is a measurement worth reporting, not a mechanism
+worth reinventing locally.
