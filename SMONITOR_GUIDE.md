@@ -5,8 +5,8 @@ Source of truth for integrating and using **SMonitor** in this library.
 Metadata
 - Source repository: `smonitor`
 - Source document: `standards/SMONITOR_GUIDE.md`
-- Source version: `smonitor@0.11.5`
-- Last synced: 2026-03-10
+- Source version: `smonitor@0.14.0`
+- Last synced: 2026-09-06
 
 ## What is SMonitor
 
@@ -42,13 +42,21 @@ At minimum, a sibling library should have:
 3. catalog-driven emission via `DiagnosticBundle` / catalog exceptions and warnings.
 4. `@signal` on public orchestration entry points.
 5. `context_extra(...)` for repeated structured diagnostic fields.
-6. one smoke test covering config + bundle export.
+6. the verification tests of section 7, plus one smoke test covering bundle export.
 
 ## 1. Required Configuration Structure
 
-If the library package is named `mylib`, the following files must exist relative to the repository root:
+If the library package is named `mylib`, the following files must exist:
 
-- `_smonitor.py`: Runtime configuration and message templates (CODES).
+- `mylib/_smonitor.py`: Runtime configuration and message templates (CODES).
+
+**Inside the package, not at the repository root.** Configuration discovery walks
+*upward*, so a file at the repository root is found in a development checkout and
+works there — and then is not packaged into the wheel, so it is simply absent for
+everyone who installed your library. The failure is silent: diagnostics fall back
+to defaults, every catalog code resolves against no template, and messages come
+out empty. Every library in the ecosystem places it at `mylib/_smonitor.py`, and
+`PACKAGE_ROOT` in `mylib/_private/smonitor/catalog.py` points at that directory.
 
 Example `_smonitor.py`:
 ```python
@@ -63,6 +71,13 @@ SMONITOR = {
     "silence": ["pint", "networkx"], # Noisy loggers to ignore
 }
 ```
+The `SMONITOR` block accepts the keyword arguments of `smonitor.configure(...)`;
+`smonitor --validate-config` lists any it does not recognise. An unrecognised key
+is reported and then ignored rather than raising, because this file is loaded
+during your package's import and a typo must not take the library down —
+`strict_config = True` turns those reports into an error when you want the
+stricter behaviour.
+
 - `mylib/_private/smonitor/catalog.py`: Catalog entries (meta-data about each signal).
 - `mylib/_private/smonitor/meta.py`: Project metadata (URLs for documentation and issues).
 - `mylib/_private/smonitor/__init__.py`: Exports `CATALOG`, `META`, and `PACKAGE_ROOT`.
@@ -76,6 +91,39 @@ Recommended pattern:
 - in `_smonitor.py`, import them from `mylib._private.smonitor.catalog`.
 
 This avoids drift where emitted catalog codes exist but template messages are missing at runtime.
+
+### 1.2 Profile fields, and what happens when one is missing
+
+A `CODES` entry may carry a message and a hint per profile:
+
+```python
+CODES = {
+    "MYLIB-W010": {
+        "title": "Selection ambiguous",
+        "user_message": "Selection '{selection}' is ambiguous.",
+        "user_hint": "Use a more specific selector, for example '{example}'.",
+        "dev_message": "Selection parser ambiguity on '{selection}'.",
+        "dev_hint": "Review selector normalization.",
+    }
+}
+```
+
+Each profile reads its own field first — `user` reads `user_message`, `qa` reads
+`qa_message`, and so on — and falls back through the nearest audience to the
+`user_*` field when its own is absent. A generic `message` sits in the middle of
+every message chain. **An entry that defines any message field renders in every
+profile**; you are never required to write all four.
+
+Write the variants that genuinely differ. MolSysMT writes all four for 49 codes
+and only 2 of them repeat the same sentence, which is the feature working as
+intended: the end user is told a probe did not succeed, the developer is given
+the exception type and its message. Where one sentence serves every audience,
+write it once.
+
+Before `0.14.0` there was no fallback, and an entry defining `user_message`
+alone rendered an **empty** message under `dev`, `qa`, `agent` and `debug`. If
+your library targets an older SMonitor, keep writing every field you rely on.
+
 
 ## 2. Initialization Protocol
 
@@ -119,8 +167,8 @@ from smonitor.integrations import CatalogException
 from . import CATALOG, META
 
 class MyLibException(CatalogException):
-    def __init__(self, **kwargs):
-        super().__init__(catalog=CATALOG, meta=META, **kwargs)
+    def __init__(self, message=None, **kwargs):
+        super().__init__(message, catalog=CATALOG, meta=META, **kwargs)
 
 class ArgumentError(MyLibException):
     catalog_key = "ArgumentError"
@@ -140,6 +188,102 @@ class MyLibWarning(CatalogWarning):
 ```
 
 **Note**: The raw `emit_from_catalog` function is still available but `DiagnosticBundle` is the preferred high-level interface.
+
+### 3.3.1 Pass structured data, not rendered sentences
+
+A catalog template may interpolate its own placeholders. Pass typed fields in
+`extra` and let SMonitor render them — do not pre-render the sentence and hand
+it over as a string:
+
+```python
+# Correct: the template owns the wording, the call site owns the data.
+# CODES["MYLIB-W010"]["user_message"] = "Atom name '{atom_name}' is not recognized."
+warn(UnknownAtomNameWarning(atom_name=atom_name))
+
+# Avoid: the template can only say "{message}", and the structured field
+# never reaches report(), fingerprints, or resource counters.
+warn(UnknownAtomNameWarning(message=f"Atom name '{atom_name}' ..."))
+```
+
+`warn(instance)` carries the instance's `extra` into the emitted event, so those
+fields reach `report()`, `events_by_fingerprint`, and `most_noisy_resources` as
+typed data. `{message}` remains available for string callers
+(`warn("some text", MyWarning)`).
+
+Catching code should read `exc.code` and `exc.extra` rather than parsing the
+rendered English message.
+
+#### Declare the message first, and the fields keyword-only
+
+```python
+class UnknownAtomNameWarning(CatalogWarning):
+    catalog_key = "UnknownAtomNameWarning"
+
+    def __init__(self, message=None, *, atom_name=None):
+        super().__init__(message, catalog=CATALOG, extra={"atom_name": atom_name})
+```
+
+Python rebuilds a warning or exception as `type(w)(*w.args)`. `pickle` does it,
+`copy.deepcopy` does it, `warnings.warn(text, category)` does it, and pytest-xdist
+does it when a warning crosses from a worker to the controller. A class that
+names a domain field first therefore receives *its own rendered sentence* as that
+field, and the template renders around its own output:
+
+```
+Atom name 'Atom name 'Ar' is not recognized.' is not recognized.
+```
+
+Putting `message` first makes that rebuild land where it belongs. Keeping the
+fields keyword-only preserves what a per-field signature is for: a misspelled
+field stays a `TypeError` instead of becoming an extra nobody reads and a
+template rendered with holes in it.
+
+Where a class needs to *compute* its message, render it in a classmethod and
+hand the finished text to `__init__`, so the constructor still stores what it is
+given rather than deriving it:
+
+```python
+    @classmethod
+    def for_atoms(cls, names):
+        joined = ", ".join(sorted(names))
+        rendered, _ = smonitor.resolve(code="MYLIB-W010", extra={"atom_name": joined})
+        return cls(rendered, atom_name=joined)
+```
+
+One residue is not fixable this way: a hint whose template interpolates a field
+cannot be re-rendered by a rebuilder that carries only `args`, since the field is
+not there. That is a limitation of the transfer, not of the class, and it is
+being addressed upstream in `pytest-dev/pytest-xdist#1372`.
+
+### 3.3.2 `warn()` also raises an ordinary Python warning
+
+Use `warn(...)` rather than `warnings.warn(...)`. It does both jobs: it emits the
+structured, catalog-backed event **and** raises the warning through Python's
+warning machinery, so everything your users and your test suite already rely on
+keeps working:
+
+```python
+# Your users' filters apply as usual.
+warnings.filterwarnings("ignore", category=UnknownAtomNameWarning)
+warnings.simplefilter("error")           # promotes it to an exception
+
+# Your tests assert on it as usual.
+with pytest.warns(UnknownAtomNameWarning, match="XXX"):
+    get_atom_type_from_atom_name("XXX")
+```
+
+Calling `warnings.warn(MyCatalogWarning(...))` directly instead is the mistake
+this replaces. The warning still reaches SMonitor when `capture_warnings` is on,
+but only by way of the `py.warnings` logger, which delivers it as Python's
+formatted text — file path and source line included — with `code=None`,
+`source="py.warnings"`, no `category` and none of your structured fields. The
+catalog entry is bypassed entirely, so the incident is invisible to
+`events_by_code`, to fingerprint summaries and to any QA policy keyed on codes.
+
+A filter that suppresses the warning for the user does **not** suppress the
+SMonitor event: filters govern the console, not your telemetry. And when
+`simplefilter("error")` promotes the warning to an exception, the event has
+already been recorded before it is raised.
 
 ### 3.4 Emission Failures Must Not Be Silenced
 
@@ -322,12 +466,112 @@ def is_valid_format(data):
 ### Assertive Parsing
 For functions that *must* succeed (e.g., "parse this unit"), keep the default `ERROR` level. If a user provides malformed input where a valid one is expected, it *is* an error.
 
+## 7. Verify the integration
+
+Level: **Mandatory**
+
+An integration can be wired correctly and still be silently useless. The failure
+modes below raise nothing, fail no test and print no warning — they only make
+your diagnostics say less than they should, and they are found months later by a
+user who reports "the error message was blank". Each check below is one
+assertion, and each corresponds to a defect that reached a released library in
+this ecosystem.
+
+### Check 1 — the configuration is found and understood
+
+```bash
+smonitor --validate-config --config-path mylib
+```
+
+It prints the effective configuration and exits `0`, or names every key it does
+not recognise and exits `2`, so it works as a CI gate as it stands.
+
+Run it **against an installed wheel**, not only in your checkout. A `_smonitor.py`
+outside the package is found in a checkout and is absent once installed, and that
+difference is invisible from a development environment.
+
+### Check 2 — every code you emit has a template
+
+A catalog entry carries `code`, `source`, `category` and `level`; the wording
+lives in `CODES`. A code present in one and absent from the other emits an event
+with an empty message, and nothing complains.
+
+### Check 3 — every code renders in every profile
+
+A profile reads its own field and falls back to the others (section 1.2), so one
+message field is enough. But a code whose entry defines *no* message field
+renders empty everywhere, and a QA or agent session is exactly where nobody is
+watching.
+
+### Check 4 — catalog classes survive being rebuilt
+
+Section 3.3.1 explains why. The guard is that rebuilding from `args` reproduces
+`args`:
+
+```python
+type(exc)(*exc.args).args == exc.args
+```
+
+Test this and not only `pickle`: `pickle` restores the instance dictionary
+afterwards, so it comes out correct **even for a class written the wrong way**.
+It is the `args`-only rebuilders — `warnings.warn(text, category)` and
+pytest-xdist between a worker and the controller — that expose the defect, and
+`args` idempotence is what they test.
+
+### One file that does all four
+
+```python
+# tests/test_smonitor_integration.py
+import pickle
+
+import pytest
+import smonitor
+
+from mylib._private.smonitor import CATALOG
+from mylib._private.smonitor.catalog import CODES
+
+PROFILES = ["user", "dev", "qa", "agent", "debug"]
+
+
+def _catalog_codes(catalog):
+    for group in ("exceptions", "warnings", "info"):
+        for entry in (catalog.get(group) or {}).values():
+            if isinstance(entry, dict) and entry.get("code"):
+                yield entry["code"]
+
+
+def test_every_catalog_code_has_a_template():
+    orphans = sorted(set(_catalog_codes(CATALOG)) - set(CODES))
+    assert not orphans, f"emitted with no template in CODES: {orphans}"
+
+
+@pytest.mark.parametrize("profile", PROFILES)
+def test_every_code_renders_in_every_profile(profile):
+    smonitor.configure(profile=profile, handlers=[], codes=CODES)
+    empty = [code for code in CODES if not smonitor.resolve(code=code, extra={})[0]]
+    assert not empty, f"empty message under {profile!r}: {empty}"
+
+
+@pytest.mark.parametrize("build", [
+    # One builder per catalog class you define, in the shape a call site uses.
+    lambda: UnknownAtomNameWarning("Atom name 'Ar' is not recognized.", atom_name="Ar"),
+])
+def test_catalog_classes_survive_a_rebuild(build):
+    original = build()
+    assert type(original)(*original.args).args == original.args
+    assert str(pickle.loads(pickle.dumps(original))) == str(original)
+```
+
+Add the bundle smoke from the minimum recipe alongside it — `smonitor export`
+followed by reading `triage` — and the integration is verified end to end.
+
+
 ## Required behavior (non-negotiable)
 
 1.  **Zero String Hardcoding**: If it's a warning or error, it belongs in the catalog.
 2.  **Lazy Diagnostics**: Do not perform expensive string formatting before calling `emit`. Pass raw data in `extra` and let SMonitor handle the interpolation.
 3.  **Traceability First**: Use `@signal` generously in orchestration layers but avoid it in high-frequency tight loops.
-4.  **Template Wiring Integrity**: Every emitted catalog code must have a matching template in the active `_smonitor.py` configuration.
+4.  **Template Wiring Integrity**: Every emitted catalog code must have a matching template in the active `_smonitor.py` configuration. A code with no template emits an event whose message is the empty string — no exception, no warning, nothing in the logs. Check 3 of section 7 is the assertion that catches it.
 5.  **No Silent Emission Failures**: Never hide failed catalog emissions without an explicit fallback diagnostic.
 
 ---
